@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# configure CORS
 origins = ["*"]
 
 app.add_middleware(
@@ -23,13 +24,15 @@ app.add_middleware(
 # @access public
 @app.get("/api/distributions/")
 def distribution(distMin: int, distMode: int, distMax: int):
+    # set seed
+    rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
     if not (distMin <= distMode and distMode <= distMax and distMin < distMax):
         return {
             "error": "Min must be less than or equal to mode, and mode must be less than or equal to max"
         }, 400
     # generate triangular distribution of 1000 values using distMin, distMode, and distMax
-    distValues = np.random.triangular(distMin, distMode, distMax, 1000).tolist()
+    distValues = rng.triangular(distMin, distMode, distMax, 1000).tolist()
     return {"distValues": distValues}
 
 
@@ -38,6 +41,8 @@ def distribution(distMin: int, distMode: int, distMax: int):
 # @access public
 @app.get("/api/simulations/")
 def monte_carlo(distMin: int, distMode: int, distMax: int, simPeriodsPerYear: int):
+    # set seed
+    rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
     if not (distMin <= distMode and distMode <= distMax and distMin < distMax):
         return {
@@ -45,12 +50,12 @@ def monte_carlo(distMin: int, distMode: int, distMax: int, simPeriodsPerYear: in
         }, 400
 
     # generate triangular distribution of 1000 simValues using distMin, distMode, and distMax
-    dist = np.random.triangular(distMin, distMode, distMax, 1000)
+    dist = rng.triangular(distMin, distMode, distMax, 1000)
 
     #   take simPeriodsPerYear samples from the distribution and return their sum. 1000 simValues in total
     simValues = []
     for i in range(0, 1000):
-        simValues.append(float(np.random.choice(dist, simPeriodsPerYear).sum()))
+        simValues.append(float(rng.choice(dist, simPeriodsPerYear).sum()))
 
     # generate stats
     simMin = round(np.min(simValues))
