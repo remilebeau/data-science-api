@@ -35,7 +35,7 @@ def distribution_triangular(distMin: int, distMode: int, distMax: int):
     return {"distValues": distValues}
 
 
-# @desc returns the sum of simPeriodsPerYear samples from a triangular distribution
+# @desc returns the sum of simPeriodsPerYear samples from a triangular distribution, along with stats
 # @route GET /api/simulations/
 # @access public
 @app.get("/api/simulations/triangular")
@@ -104,7 +104,7 @@ def distribution_uniform(distMin: int, distMax: int):
     return {"distValues": distValues}
 
 
-# @desc returns the sum of simPeriodsPerYear samples from a uniform distribution
+# @desc returns the sum of simPeriodsPerYear samples from a uniform distribution, along with stats
 # @route GET /api/simulations/
 # @access public
 @app.get("/api/simulations/uniform")
@@ -160,8 +160,8 @@ def simulation_uniform(distMin: int, distMax: int, simPeriodsPerYear: int):
 def distribution_truncated_normal(
     distMin: int, distMean: int, distMax: int, distSD: float
 ):
-    # check distSD >= 0
-    if not (distSD >= 0):
+    # validate data
+    if distSD < 0:
         raise HTTPException(
             status_code=400,
             detail="Standard deviation must be non-negative",
@@ -174,7 +174,7 @@ def distribution_truncated_normal(
     norm_vals = rng.normal(distMean, distSD, 1000).tolist()
 
     # truncate with custom function
-    def truncated_normal(norm_vals):
+    def truncated_normal(norm_vals: list):
         value = rng.choice(norm_vals)
         if not (distMin <= value and value <= distMax):
             value = truncated_normal(norm_vals)
@@ -185,11 +185,10 @@ def distribution_truncated_normal(
     for i in range(0, 1000):
         distValues.append(truncated_normal(norm_vals))
 
-    print(distValues)
     return {"distValues": distValues}
 
 
-# @desc returns the sum of simPeriodsPerYear samples from a truncated normal distribution
+# @desc returns the sum of simPeriodsPerYear samples from a truncated normal distribution, along with stats
 # @route GET /api/simulations/
 # @access public
 @app.get("/api/simulations/truncated_normal")
@@ -197,7 +196,7 @@ def simulation_truncated_normal(
     distMin: int, distMean: int, distMax: int, distSD: float, simPeriodsPerYear: int
 ):
     # check distSD >= 0
-    if not (distSD >= 0):
+    if distSD < 0:
         raise HTTPException(
             status_code=400,
             detail="Standard deviation must be non-negative",
@@ -207,13 +206,13 @@ def simulation_truncated_normal(
     rng = np.random.default_rng(seed=42)
 
     # generate normal distribution to truncate
-    norm_vals = rng.normal(distMean, distSD, 1000)
+    norm_vals = rng.normal(distMean, distSD, 1000).tolist()
 
     # truncate with custom function
-    def truncated_normal(dist):
-        value = rng.choice(dist, 1)
+    def truncated_normal(norm_vals: list):
+        value = rng.choice(norm_vals)
         if not (distMin <= value and value <= distMax):
-            value = truncated_normal(dist)
+            value = truncated_normal(norm_vals)
         return value
 
     # generate distribution
