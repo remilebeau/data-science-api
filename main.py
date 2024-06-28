@@ -1,6 +1,6 @@
 import numpy as np
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -26,9 +26,10 @@ def distribution_triangular(distMin: int, distMode: int, distMax: int):
     rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
     if not (distMin <= distMode and distMode <= distMax and distMin < distMax):
-        return {
-            "error": "Min must be less than or equal to mode, and mode must be less than or equal to max"
-        }, 400
+        raise HTTPException(
+            status_code=400,
+            detail="Please ensure the following: min <= mode <= max and min < max",
+        )
     # generate distribution
     distValues = rng.triangular(distMin, distMode, distMax, 1000).tolist()
     return {"distValues": distValues}
@@ -45,9 +46,10 @@ def simulation_triangular(
     rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
     if not (distMin <= distMode and distMode <= distMax and distMin < distMax):
-        return {
-            "error": "Min must be less than or equal to mode, and mode must be less than or equal to max"
-        }, 400
+        raise HTTPException(
+            status_code=400,
+            detail="Please ensure the following: min <= mode <= max and min < max",
+        )
 
     # generate distribution
     dist = rng.triangular(distMin, distMode, distMax, 1000)
