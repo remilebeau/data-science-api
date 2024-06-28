@@ -108,9 +108,7 @@ def distribution_uniform(distMin: int, distMax: int):
 # @route GET /api/simulations/
 # @access public
 @app.get("/api/simulations/uniform")
-def simulation_uniform(
-    distMin: int, distMode: int, distMax: int, simPeriodsPerYear: int
-):
+def simulation_uniform(distMin: int, distMax: int, simPeriodsPerYear: int):
     # set seed
     rng = np.random.default_rng(seed=42)
     # check min < max
@@ -121,7 +119,7 @@ def simulation_uniform(
         )
 
     # generate distribution
-    dist = rng.uniform(distMin, distMode, distMax, 1000)
+    dist = rng.uniform(distMin, distMax, 1000)
 
     #   take simPeriodsPerYear samples from the distribution and return their sum. 1000 simValues in total
     simValues = []
