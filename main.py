@@ -1,7 +1,5 @@
 import numpy as np
 
-from typing import Union
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,11 +17,11 @@ app.add_middleware(
 )
 
 
-# @desc returns 1000 random values from a given triangular distribution
-# @route GET /api/distributions/
+# @desc returns 1000 random values from a triangular distribution
+# @route GET /api/distributions/triangular
 # @access public
-@app.get("/api/distributions/")
-def distribution(distMin: int, distMode: int, distMax: int):
+@app.get("/api/distributions/triangular")
+def distribution_triangular(distMin: int, distMode: int, distMax: int):
     # set seed
     rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
@@ -31,7 +29,7 @@ def distribution(distMin: int, distMode: int, distMax: int):
         return {
             "error": "Min must be less than or equal to mode, and mode must be less than or equal to max"
         }, 400
-    # generate triangular distribution of 1000 values using distMin, distMode, and distMax
+    # generate distribution
     distValues = rng.triangular(distMin, distMode, distMax, 1000).tolist()
     return {"distValues": distValues}
 
@@ -39,8 +37,10 @@ def distribution(distMin: int, distMode: int, distMax: int):
 # @desc returns the sum of daysPerYear samples from a given triangular distribution to simulate yearly cash flow
 # @route GET /api/simulations/
 # @access public
-@app.get("/api/simulations/")
-def monte_carlo(distMin: int, distMode: int, distMax: int, simPeriodsPerYear: int):
+@app.get("/api/simulations/triangular")
+def simulation_triangular(
+    distMin: int, distMode: int, distMax: int, simPeriodsPerYear: int
+):
     # set seed
     rng = np.random.default_rng(seed=42)
     # check min <= mode and mode <= max and min < max
@@ -49,7 +49,7 @@ def monte_carlo(distMin: int, distMode: int, distMax: int, simPeriodsPerYear: in
             "error": "Min must be less than or equal to mode, and mode must be less than or equal to max"
         }, 400
 
-    # generate triangular distribution of 1000 simValues using distMin, distMode, and distMax
+    # generate distribution
     dist = rng.triangular(distMin, distMode, distMax, 1000)
 
     #   take simPeriodsPerYear samples from the distribution and return their sum. 1000 simValues in total
