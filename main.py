@@ -2,8 +2,14 @@ import numpy as np
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI()
+
+
+class BootstrapDataset(BaseModel):
+    values: list
+
 
 # configure CORS
 origins = ["*"]
@@ -254,16 +260,16 @@ def simulation_truncated_normal(
 # @route GET /api/distributions/bootstrap
 # @access public
 @app.get("/api/distributions/bootstrap")
-def distribution_bootstrap(values: list):
+def distribution_bootstrap(values: BootstrapDataset):
     # set seed
     rng = np.random.default_rng(seed=42)
 
     # bootstrap function
     def bootstrap(values: list):
-        return rng.choice(values, len(values))
+        return rng.choice(values).item()
 
     # generate distribution
-    distValues = [bootstrap(values) for _ in range(0, 1000)]
+    distValues = [bootstrap(values.values) for _ in range(0, 1000)]
     return {"distValues": distValues}
 
 
@@ -271,7 +277,7 @@ def distribution_bootstrap(values: list):
 # @route GET /api/simulations/
 # @access public
 @app.get("/api/simulations/bootstrap")
-def simulation_bootstrap(values: list):
+def simulation_bootstrap(dataset: BootstrapDataset):
     # set seed
     rng = np.random.default_rng(seed=42)
 
@@ -280,7 +286,7 @@ def simulation_bootstrap(values: list):
         return rng.choice(values, len(values))
 
     # generate distribution
-    bootstrap_vals = [bootstrap(values) for _ in range(0, 1000)]
+    bootstrap_vals = [bootstrap(dataset.values) for _ in range(0, 1000)]
 
     # create a list of 1000 simulations
     simValues = [
