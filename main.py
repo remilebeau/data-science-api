@@ -283,14 +283,11 @@ def simulation_bootstrap(dataset: BootstrapDataset):
 
     # bootstrap function
     def bootstrap(values: list):
-        return rng.choice(values, len(values))
-
-    # generate distribution
-    bootstrap_vals = [bootstrap(dataset.values) for _ in range(0, 1000)]
+        return rng.choice(values).item()
 
     # create a list of 1000 simulations
     simValues = [
-        float(rng.choice(bootstrap_vals, len(bootstrap_vals)).sum())
+        float(rng.choice(dataset.values, len(dataset.values)).sum())
         for _ in range(0, 1000)
     ]
 
