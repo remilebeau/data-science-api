@@ -260,7 +260,7 @@ def simulation_truncated_normal(
 # @route GET /api/distributions/bootstrap
 # @access public
 @app.get("/api/distributions/bootstrap")
-def distribution_bootstrap(values: BootstrapDataset):
+def distribution_bootstrap(dataset: BootstrapDataset):
     # set seed
     rng = np.random.default_rng(seed=42)
 
@@ -269,25 +269,21 @@ def distribution_bootstrap(values: BootstrapDataset):
         return rng.choice(values).item()
 
     # generate distribution
-    distValues = [bootstrap(values.values) for _ in range(0, 1000)]
+    distValues = [bootstrap(dataset.values) for _ in range(0, 1000)]
     return {"distValues": distValues}
 
 
 # @desc returns the sum of simPeriodsPerYear samples from a bootstrapped distribution, along with stats
-# @route GET /api/simulations/
+# @route GET /api/simulations/bootstrap
 # @access public
 @app.get("/api/simulations/bootstrap")
-def simulation_bootstrap(dataset: BootstrapDataset):
+def simulation_bootstrap(dataset: BootstrapDataset, simPeriodsPerYear: int):
     # set seed
     rng = np.random.default_rng(seed=42)
 
-    # bootstrap function
-    def bootstrap(values: list):
-        return rng.choice(values).item()
-
     # create a list of 1000 simulations
     simValues = [
-        float(rng.choice(dataset.values, len(dataset.values)).sum())
+        float(rng.choice(dataset.values, simPeriodsPerYear).sum())
         for _ in range(0, 1000)
     ]
 
