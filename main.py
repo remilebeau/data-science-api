@@ -253,7 +253,7 @@ def simulation_finance(
         ]
         cash_flows = [after_tax_profit[year] + depreciation for year in range(5)]
         cash_flows.insert(0, -fixedCost)
-        return npf.npv(discountRate, cash_flows)
+        return round(npf.npv(discountRate, cash_flows))
 
     sim_values = [simulation() for _ in range(1000)]
     # generate stats
@@ -266,18 +266,27 @@ def simulation_finance(
     q1 = np.quantile(sim_values, 0.25)
     q2 = np.quantile(sim_values, 0.5)
     q3 = np.quantile(sim_values, 0.75)
+    p_lose_money = sum(value < 0 for value in sim_values) / len(sim_values)
+    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(sim_values)
+    )
+    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(sim_values)
+    )
     value_at_risk = np.quantile(sim_values, 0.05)
 
     return {
         "simValues": sim_values,
-        "meanProfit": mean,
-        "stdError": stdError,
-        "lowerCI": lowerCI,
-        "upperCI": upperCI,
-        "minProfit": min_profit,
-        "maxProfit": max_profit,
-        "q1": q1,
-        "q2": q2,
-        "q3": q3,
-        "valueAtRisk": value_at_risk,
+        "meanProfit": round(mean),
+        "stdError": round(stdError),
+        "lowerCI": round(lowerCI),
+        "upperCI": round(upperCI),
+        "minProfit": round(min_profit),
+        "maxProfit": round(max_profit),
+        "q1": round(q1),
+        "q2": round(q2),
+        "q3": round(q3),
+        "pLoseMoneyLowerCI": round(p_lose_money_lower_ci, 2),
+        "pLoseMoneyUpperCI": round(p_lose_money_upper_ci, 2),
+        "valueAtRisk": round(value_at_risk),
     }
