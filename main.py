@@ -91,11 +91,11 @@ def distribution_truncated_normal(
     return {"distValues": distValues}
 
 
-# @desc monte carlo simulation of planning production by Tallys Yunes. using triangular distribution instead of truncated normal. confidence intervals are 95%
-# @route GET /api/simulations/monte_carlo
+# @desc monte carlo simulation of planning production by Tallys Yunes. triangular distribution instead of truncated normal. confidence intervals are 95%
+# @route GET /api/simulations/production
 # @access public
-@app.get("/api/simulations/monte_carlo")
-def simulation_monte_carlo(
+@app.get("/api/simulations/production")
+def simulation_production(
     unitCost: float,
     unitPrice: float,
     salvagePrice: float,
@@ -134,7 +134,7 @@ def simulation_monte_carlo(
         # profit = revenues - costs = sales rev + salvage rev - production cost - fixed costs
         demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
         realized_demand = float(rng.choice(demand_distribution, 1).sum())
-        units_sold = min(realized_demand, productionQuantity)
+        units_sold = min(productionQuantity, realized_demand)
         units_salvaged = max(productionQuantity - realized_demand, 0)
         production_cost = productionQuantity * unitCost
         revenue_from_sales = units_sold * unitPrice
