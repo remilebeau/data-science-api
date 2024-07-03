@@ -253,8 +253,6 @@ def simulation_finance(
         ]
         cash_flows = [after_tax_profit[year] + depreciation for year in range(5)]
         cash_flows.insert(0, -fixedCost)
-        print("unit_sales", unit_sales)
-        print("unit_margins", unit_margins)
         return npf.npv(discountRate, cash_flows)
 
     sim_values = [simulation() for _ in range(1000)]
