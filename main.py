@@ -1,4 +1,5 @@
 import numpy as np
+import numpy_financial as npf
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -91,7 +92,7 @@ def distribution_truncated_normal(
     return {"distValues": distValues}
 
 
-# @desc monte carlo simulation of planning production by Tallys Yunes. triangular distribution instead of truncated normal. confidence intervals are 95%
+# @desc Monte Carlo simulation of planning production by Tallys Yunes. Triangular distribution. Alpha = 0.05
 # @route GET /api/simulations/production
 # @access public
 @app.get("/api/simulations/production")
@@ -120,20 +121,13 @@ def simulation_production(
     # set seed
     rng = np.random.default_rng(seed=42)
 
-    # simulation function
-    def calculate_profit(
-        unitCost: float,
-        unitPrice: float,
-        salvagePrice: float,
-        demandMin: float,
-        demandMode: float,
-        demandMax: float,
-        fixedCost: float,
-        productionQuantity: float,
-    ):
+    # define demand distribution
+    demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+
+    # define simulation
+    def simulation():
         # profit = revenues - costs = sales rev + salvage rev - production cost - fixed costs
-        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
-        realized_demand = float(rng.choice(demand_distribution, 1).sum())
+        realized_demand = float(rng.choice(demand_distribution))
         units_sold = min(productionQuantity, realized_demand)
         units_salvaged = max(productionQuantity - realized_demand, 0)
         production_cost = productionQuantity * unitCost
@@ -143,25 +137,13 @@ def simulation_production(
         return profit
 
     # run 1000 simulations
-    simulated_profits = [
-        calculate_profit(
-            unitCost,
-            unitPrice,
-            salvagePrice,
-            demandMin,
-            demandMode,
-            demandMax,
-            fixedCost,
-            productionQuantity,
-        )
-        for _ in range(0, 1000)
-    ]
+    simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
     mean = round(np.mean(simulated_profits))
-    stdError = round(1.96 * np.std(simulated_profits) / np.sqrt(len(simulated_profits)))
-    lowerCI = round(mean - stdError)
-    upperCI = round(mean + stdError)
+    stdError = round(np.std(simulated_profits) / np.sqrt(len(simulated_profits)))
+    lowerCI = round(mean - 1.96 * stdError)
+    upperCI = round(mean + 1.96 * stdError)
     min_profit = round(np.min(simulated_profits))
     max_profit = round(np.max(simulated_profits))
     q1 = round(np.percentile(simulated_profits, 25))
@@ -193,4 +175,111 @@ def simulation_production(
         "q3": q3,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+    }
+
+
+# @desc Finance example of Monte Carlo simulation by Tallys Yunes. Triangular distribution. Alpha = 0.05
+# @route GET /api/simulations/finance
+# @access public
+@app.get("/api/simulations/finance")
+def simulation_finance(
+    fixedCost: float,
+    demandMin: float,
+    demandMode: float,
+    demandMax: float,
+    yearOneMargin: float,
+    annualMarginDecrease: float,
+    taxRate: float,
+    discountRate: float,
+    demandDecayMin: float,
+    demandDecayMode: float,
+    demandDecayMax: float,
+):
+    # validate data
+    if not (
+        demandMin <= demandMode
+        and demandMode <= demandMax
+        and demandMin < demandMax
+        and yearOneMargin > 0
+        and annualMarginDecrease >= 0
+        and annualMarginDecrease < 1
+        and taxRate >= 0
+        and taxRate < 1
+        and discountRate >= 0
+        and discountRate < 1
+        and demandDecayMin <= demandDecayMode
+        and demandDecayMode <= demandDecayMax
+        and demandDecayMin < demandDecayMax
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid data. Please check your input and try again.",
+        )
+
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    # define demand distribution
+    demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+
+    # define demand_decay_distribution
+    demand_decay_distribution = rng.triangular(
+        demandDecayMin, demandDecayMode, demandDecayMax, 1000
+    )
+
+    # define simulation
+    def simulation():
+        # create unit_sales list, beginning with year 1
+        unit_sales = [float(rng.choice(demand_distribution))]
+        # add unit_sales for years 2-5
+        for year in range(1, 5):
+            unit_sales.append(
+                unit_sales[-1] * (1 - float(rng.choice(demand_decay_distribution)))
+            )
+        # create unit_margin list, beginning with year 1
+        unit_margins = [yearOneMargin]
+        # add unit_margins for years 2-5
+        for year in range(1, 5):
+            unit_margins.append(unit_margins[-1] * (1 - annualMarginDecrease))
+        revenue_minus_variable_cost = [
+            unit_sales[year] * unit_margins[year] for year in range(5)
+        ]
+        depreciation = fixedCost / 5
+        before_tax_profit = [
+            revenue_minus_variable_cost[year] - depreciation for year in range(5)
+        ]
+        after_tax_profit = [
+            before_tax_profit[year] * (1 - taxRate) for year in range(5)
+        ]
+        cash_flows = [after_tax_profit[year] + depreciation for year in range(5)]
+        cash_flows.insert(0, -fixedCost)
+        print("unit_sales", unit_sales)
+        print("unit_margins", unit_margins)
+        return npf.npv(discountRate, cash_flows)
+
+    sim_values = [simulation() for _ in range(1000)]
+    # generate stats
+    mean = np.mean(sim_values)
+    stdError = np.std(sim_values) / np.sqrt(len(sim_values))
+    lowerCI = mean - 1.96 * stdError
+    upperCI = mean + 1.96 * stdError
+    min_profit = min(sim_values)
+    max_profit = max(sim_values)
+    q1 = np.quantile(sim_values, 0.25)
+    q2 = np.quantile(sim_values, 0.5)
+    q3 = np.quantile(sim_values, 0.75)
+    value_at_risk = np.quantile(sim_values, 0.05)
+
+    return {
+        "simValues": sim_values,
+        "meanProfit": mean,
+        "stdError": stdError,
+        "lowerCI": lowerCI,
+        "upperCI": upperCI,
+        "minProfit": min_profit,
+        "maxProfit": max_profit,
+        "q1": q1,
+        "q2": q2,
+        "q3": q3,
+        "valueAtRisk": value_at_risk,
     }
