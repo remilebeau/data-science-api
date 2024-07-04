@@ -127,7 +127,7 @@ def simulation_production(
     # define simulation
     def simulation():
         # profit = revenues - costs = sales rev + salvage rev - production cost - fixed costs
-        realized_demand = float(rng.choice(demand_distribution))
+        realized_demand = rng.choice(demand_distribution)
         units_sold = min(productionQuantity, realized_demand)
         units_salvaged = max(productionQuantity - realized_demand, 0)
         production_cost = productionQuantity * unitCost
@@ -230,10 +230,10 @@ def simulation_finance(
     # define simulation
     def simulation():
         # create unit_sales list, beginning with year 1
-        unit_sales = [float(rng.choice(demand_distribution))]
+        unit_sales = [rng.choice(demand_distribution)]
         # add unit_sales for years 2-5
         unit_sales.append(
-            unit_sales[-1] * (1 - float(rng.choice(demand_decay_distribution)))
+            unit_sales[-1] * (1 - rng.choice(demand_decay_distribution))
             for year in range(1, 5)
         )
         # create unit_margin list, beginning with year 1
