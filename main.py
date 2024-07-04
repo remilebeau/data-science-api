@@ -3,13 +3,8 @@ import numpy_financial as npf
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 app = FastAPI()
-
-
-class BootstrapDataset(BaseModel):
-    values: list
 
 
 # configure CORS
