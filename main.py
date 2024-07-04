@@ -149,7 +149,7 @@ def simulation_production(
     q1 = round(np.percentile(simulated_profits, 25))
     q2 = round(np.percentile(simulated_profits, 50))
     q3 = round(np.percentile(simulated_profits, 75))
-    p_lose_money = [profit < 0 for profit in simulated_profits].count(True) / len(
+    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
         simulated_profits
     )
     p_lose_money_lower_ci = round(
@@ -232,15 +232,16 @@ def simulation_finance(
         # create unit_sales list, beginning with year 1
         unit_sales = [float(rng.choice(demand_distribution))]
         # add unit_sales for years 2-5
-        for year in range(1, 5):
-            unit_sales.append(
-                unit_sales[-1] * (1 - float(rng.choice(demand_decay_distribution)))
-            )
+        unit_sales.append(
+            unit_sales[-1] * (1 - float(rng.choice(demand_decay_distribution)))
+            for year in range(1, 5)
+        )
         # create unit_margin list, beginning with year 1
         unit_margins = [yearOneMargin]
         # add unit_margins for years 2-5
-        for year in range(1, 5):
-            unit_margins.append(unit_margins[-1] * (1 - annualMarginDecrease))
+        unit_margins.append(
+            unit_margins[-1] * (1 - annualMarginDecrease) for year in range(1, 5)
+        )
         revenue_minus_variable_cost = [
             unit_sales[year] * unit_margins[year] for year in range(5)
         ]
@@ -252,6 +253,7 @@ def simulation_finance(
             before_tax_profit[year] * (1 - taxRate) for year in range(5)
         ]
         cash_flows = [after_tax_profit[year] + depreciation for year in range(5)]
+        # insert today's outflows at [0] according to npf.npv requirements
         cash_flows.insert(0, -fixedCost)
         return round(npf.npv(discountRate, cash_flows))
 
