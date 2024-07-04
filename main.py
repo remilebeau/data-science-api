@@ -92,7 +92,7 @@ def distribution_truncated_normal(
     return {"distValues": distValues}
 
 
-# @desc Monte Carlo simulation of planning production by Tallys Yunes. Triangular distribution. Alpha = 0.05
+# @desc Monte Carlo simulation for production planning. Credit to Tallys Yunes for the idea. Triangular distribution. Alpha = 0.05
 # @route GET /api/simulations/production
 # @access public
 @app.get("/api/simulations/production")
@@ -178,7 +178,7 @@ def simulation_production(
     }
 
 
-# @desc Finance example of Monte Carlo simulation by Tallys Yunes. Triangular distribution. Alpha = 0.05
+# @desc Monte Carlo simulation for finance. Credit to Tallys Yunes for the idea. Triangular distribution. Alpha = 0.05
 # @route GET /api/simulations/finance
 # @access public
 @app.get("/api/simulations/finance")
