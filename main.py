@@ -227,16 +227,15 @@ def simulation_finance(
         # create unit_sales list, beginning with year 1
         unit_sales = [rng.choice(demand_distribution)]
         # add unit_sales for years 2-5
-        unit_sales.append(
-            unit_sales[-1] * (1 - rng.choice(demand_decay_distribution))
-            for year in range(1, 5)
-        )
+        for year in range(1, 5):
+            unit_sales.append(
+                unit_sales[-1] * (1 - rng.choice(demand_decay_distribution))
+            )
         # create unit_margin list, beginning with year 1
         unit_margins = [yearOneMargin]
         # add unit_margins for years 2-5
-        unit_margins.append(
-            unit_margins[-1] * (1 - annualMarginDecrease) for year in range(1, 5)
-        )
+        for year in range(1, 5):
+            unit_margins.append(unit_margins[-1] * (1 - annualMarginDecrease))
         revenue_minus_variable_cost = [
             unit_sales[year] * unit_margins[year] for year in range(5)
         ]
