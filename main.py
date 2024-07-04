@@ -158,9 +158,8 @@ def simulation_production(
         2,
     )
     return {
-        "simulatedProfits": simulated_profits,
+        "simValues": simulated_profits,
         "meanProfit": mean,
-        "stdError": stdError,
         "lowerCI": lowerCI,
         "upperCI": upperCI,
         "minProfit": min_profit,
@@ -269,12 +268,10 @@ def simulation_finance(
     p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
         p_lose_money * (1 - p_lose_money) / len(sim_values)
     )
-    value_at_risk = np.quantile(sim_values, 0.05)
 
     return {
         "simValues": sim_values,
         "meanProfit": round(mean),
-        "stdError": round(stdError),
         "lowerCI": round(lowerCI),
         "upperCI": round(upperCI),
         "minProfit": round(min_profit),
@@ -284,5 +281,4 @@ def simulation_finance(
         "q3": round(q3),
         "pLoseMoneyLowerCI": round(p_lose_money_lower_ci, 2),
         "pLoseMoneyUpperCI": round(p_lose_money_upper_ci, 2),
-        "valueAtRisk": round(value_at_risk),
     }
