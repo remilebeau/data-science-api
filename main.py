@@ -262,15 +262,15 @@ def simulation_finance(
     demandMode: float,
     demandMax: float,
     yearOneMargin: float,
-    annualMarginDecrease: float,
-    taxRate: float,
-    discountRate: float,
-    demandDecayMin: float,
-    demandDecayMode: float,
-    demandDecayMax: float,
+    annualMarginDecrease: float | None = None,
+    taxRate: float | None = None,
+    discountRate: float | None = None,
+    demandDecayMin: float | None = None,
+    demandDecayMode: float | None = None,
+    demandDecayMax: float | None = None,
 ):
     """
-    Perform a Monte Carlo simulation for finance.
+    Perform a Monte Carlo simulation for finance. The following inputs can be ignored in the model by setting them to 0:
 
     Args:\n
         fixedCost (float): The fixed cost of the project, split over 5 years using the straight-line depreciation method.\n
@@ -311,9 +311,17 @@ def simulation_finance(
         and taxRate < 1
         and discountRate >= 0
         and discountRate < 1
-        and demandDecayMin <= demandDecayMode
-        and demandDecayMode <= demandDecayMax
-        and demandDecayMin < demandDecayMax
+        and (
+            # demand decay must be a triangular distribution or all 0
+            # min <= mode <= max and min < max
+            (
+                demandDecayMin <= demandDecayMode
+                and demandDecayMode <= demandDecayMax
+                and demandDecayMin < demandDecayMax
+            )
+            # or all 0
+            or (demandDecayMin == 0 and demandDecayMode == 0 and demandDecayMax == 0)
+        )
     ):
         raise HTTPException(
             status_code=400,
@@ -327,8 +335,10 @@ def simulation_finance(
     demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
 
     # define demand_decay_distribution
-    demand_decay_distribution = rng.triangular(
-        demandDecayMin, demandDecayMode, demandDecayMax, 1000
+    demand_decay_distribution = (
+        rng.triangular(demandDecayMin, demandDecayMode, demandDecayMax, 1000)
+        if (demandDecayMin and demandDecayMode and demandDecayMax)
+        else [0]
     )
 
     # define simulation
