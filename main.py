@@ -33,8 +33,7 @@ def distribution_triangular(distMin: float, distMode: float, distMax: float):
         distMax (float): The maximum value of the distribution.\n
 
     Returns:\n
-        dict: A dictionary containing the generated distribution values.\n
-            - distValues (list): A list of 1000 pseudorandom values from a triangular distribution.
+        distValues (list): A list of 1000 pseudorandom values from a triangular distribution.
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
@@ -69,8 +68,7 @@ def distribution_uniform(distMin: int, distMax: int):
         distMax (int): The maximum value of the distribution.\n
 
     Returns:\n
-        dict: A dictionary containing the generated distribution values.
-            - distValues (list): A list of 1000 pseudorandom values from a uniform distribution.
+        distValues (list): A list of 1000 pseudorandom values from a uniform distribution.
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following condition: distMin < distMax.
@@ -106,8 +104,7 @@ def distribution_truncated_normal(
         distSD (float): The standard deviation of the distribution.\n
 
     Returns:\n
-        dict: A dictionary containing the generated distribution values.
-            - distValues (list): A list of 1000 pseudorandom values from a truncated normal distribution.
+        distValues (list): A list of 1000 pseudorandom values from a truncated normal distribution.
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
@@ -175,10 +172,25 @@ def simulation_production(
         productionQuantity (float): The production quantity.\n
 
     Returns:\n
-        dict: A dictionary containing the simulation results, including the simulated profits, mean profit, a 95% confidence interval for the mean profit, minimum profit, maximum profit, quartiles, and a 95% confidence interval for the probability of losing money.
+        simValues (list): A list of simulated production values.\n
+        meanProfit (float): The mean observed profit.\n
+        lowerCI (float): The lower 95% confidence interval for the mean.\n
+        upperCI (float): The upper 95% confidence interval for the mean.\n
+        minProfit (float): The minimum observed profit.\n
+        maxProfit (float): The maximum observed profit.\n
+        q1 (float): The first quartile of observed profits.\n
+        q2 (float): The second quartile of observed profits.\n
+        q3 (float): The third quartile of observed profits.\n
+        pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of losing money.\n
+        pLoseMoneyUpperCI (float): The upper 95% confidence interval for the probability of losing money.\n
 
     Raises:\n
-        HTTPException: If the input data is invalid.
+        HTTPException: If the inputs do not satisfy the following conditions:
+            - demandMin <= demandMode
+            - demandMode <= demandMax
+            - demandMin < demandMax
+            - productionQuantity > 0
+            A 400 status code and an error message are returned in this case.
 
     """
     # validate data
