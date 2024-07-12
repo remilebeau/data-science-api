@@ -144,7 +144,7 @@ def distribution_truncated_normal(
     return {"distValues": distValues}
 
 
-# @desc Monte Carlo simulation for production planning. Triangular distribution. Alpha = 0.05
+# @desc Monte Carlo simulation for production planning. Triangular distribution. n = 1000. α = 0.05
 # @route GET /api/simulations/production
 # @access public
 @app.get("/api/simulations/production")
@@ -162,25 +162,20 @@ def simulation_production(
     Simulates production and calculates various statistics based on the simulation results.
 
     Args:\n
-        unitCost (float): The cost per unit of production.\n
-        unitPrice (float): The price per unit of production.\n
-        salvagePrice (float): The price per unit of salvage.\n
+        unitCost (float): The production cost per unit.\n
+        unitPrice (float): The sell price per unit.\n
+        salvagePrice (float): The salvage price per unit.\n
         demandMin (float): The minimum demand.\n
-        demandMode (float): The mode of demand.\n
+        demandMode (float): The expected demand.\n
         demandMax (float): The maximum demand.\n
-        fixedCost (float): The fixed cost.\n
+        fixedCost (float): The total fixed costs for the production.\n
         productionQuantity (float): The production quantity.\n
 
     Returns:\n
-        simValues (list): A list of simulated production values.\n
-        meanProfit (float): The mean observed profit.\n
-        lowerCI (float): The lower 95% confidence interval for the mean.\n
-        upperCI (float): The upper 95% confidence interval for the mean.\n
-        minProfit (float): The minimum observed profit.\n
-        maxProfit (float): The maximum observed profit.\n
-        q1 (float): The first quartile of observed profits.\n
-        q2 (float): The second quartile of observed profits.\n
-        q3 (float): The third quartile of observed profits.\n
+        simulatedProfits (list): A list of 1000 simulated profits.\n
+        meanProfit (float): The mean of the 1000 simulated profits.\n
+        meanLowerCI (float): The lower 95% confidence interval for the mean.\n
+        meanUpperCI (float): The upper 95% confidence interval for the mean.\n
         pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of losing money.\n
         pLoseMoneyUpperCI (float): The upper 95% confidence interval for the probability of losing money.\n
 
@@ -227,15 +222,10 @@ def simulation_production(
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
-    mean = round(np.mean(simulated_profits))
+    mean_profit = round(np.mean(simulated_profits))
     stdError = round(np.std(simulated_profits) / np.sqrt(len(simulated_profits)))
-    lowerCI = round(mean - 1.96 * stdError)
-    upperCI = round(mean + 1.96 * stdError)
-    min_profit = round(np.min(simulated_profits))
-    max_profit = round(np.max(simulated_profits))
-    q1 = round(np.percentile(simulated_profits, 25))
-    q2 = round(np.percentile(simulated_profits, 50))
-    q3 = round(np.percentile(simulated_profits, 75))
+    mean_lower_ci = round(mean_profit - 1.96 * stdError)
+    mean_upper_ci = round(mean_profit + 1.96 * stdError)
     p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
         simulated_profits
     )
@@ -250,15 +240,10 @@ def simulation_production(
         2,
     )
     return {
-        "simValues": simulated_profits,
-        "meanProfit": mean,
-        "lowerCI": lowerCI,
-        "upperCI": upperCI,
-        "minProfit": min_profit,
-        "maxProfit": max_profit,
-        "q1": q1,
-        "q2": q2,
-        "q3": q3,
+        "simulatedProfits": simulated_profits,
+        "meanProfit": mean_profit,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
     }
