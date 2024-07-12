@@ -174,6 +174,7 @@ def simulation_production(
     Returns:\n
         simulatedProfits (list): A list of 1000 simulated profits.\n
         meanProfit (float): The mean of the 1000 simulated profits.\n
+        meanStandardError (float): The standard error of the mean.\n
         meanLowerCI (float): The lower 95% confidence interval for the mean.\n
         meanUpperCI (float): The upper 95% confidence interval for the mean.\n
         pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of losing money.\n
