@@ -223,25 +223,22 @@ def simulation_production(
 
     # generate stats
     mean_profit = round(np.mean(simulated_profits))
-    stdError = round(np.std(simulated_profits) / np.sqrt(len(simulated_profits)))
-    mean_lower_ci = round(mean_profit - 1.96 * stdError)
-    mean_upper_ci = round(mean_profit + 1.96 * stdError)
-    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
-        simulated_profits
-    )
+    mean_std_error = round(np.std(simulated_profits) / np.sqrt(1000))
+    mean_lower_ci = round(mean_profit - 1.96 * mean_std_error)
+    mean_upper_ci = round(mean_profit + 1.96 * mean_std_error)
+    p_lose_money = sum(profit < 0 for profit in simulated_profits) / 1000
     p_lose_money_lower_ci = round(
-        p_lose_money
-        - 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / len(simulated_profits)),
+        p_lose_money - 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / 1000),
         2,
     )
     p_lose_money_upper_ci = round(
-        p_lose_money
-        + 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / len(simulated_profits)),
+        p_lose_money + 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / 1000),
         2,
     )
     return {
         "simulatedProfits": simulated_profits,
         "meanProfit": mean_profit,
+        "meanStandardError": mean_std_error,
         "meanLowerCI": mean_lower_ci,
         "meanUpperCI": mean_upper_ci,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
