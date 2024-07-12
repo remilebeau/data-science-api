@@ -144,7 +144,7 @@ def distribution_truncated_normal(
     return {"distValues": distValues}
 
 
-# @desc Monte Carlo simulation for production planning. Credit to Tallys Yunes for the idea. Triangular distribution. Alpha = 0.05
+# @desc Monte Carlo simulation for production planning. Triangular distribution. Alpha = 0.05
 # @route GET /api/simulations/production
 # @access public
 @app.get("/api/simulations/production")
