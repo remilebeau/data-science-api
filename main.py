@@ -224,18 +224,16 @@ def simulation_production(
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
-    mean_profit = round(np.mean(simulated_profits))
-    mean_std_error = round(np.std(simulated_profits) / np.sqrt(1000))
-    mean_lower_ci = round(mean_profit - 1.96 * mean_std_error)
-    mean_upper_ci = round(mean_profit + 1.96 * mean_std_error)
+    mean_profit = np.mean(simulated_profits)
+    mean_std_error = np.std(simulated_profits) / np.sqrt(1000)
+    mean_lower_ci = mean_profit - 1.96 * mean_std_error
+    mean_upper_ci = mean_profit + 1.96 * mean_std_error
     p_lose_money = sum(profit < 0 for profit in simulated_profits) / 1000
-    p_lose_money_lower_ci = round(
-        p_lose_money - 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / 1000),
-        2,
+    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / 1000
     )
-    p_lose_money_upper_ci = round(
-        p_lose_money + 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / 1000),
-        2,
+    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / 1000
     )
     value_at_risk = np.percentile(simulated_profits, 5)
     return {
