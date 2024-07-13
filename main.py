@@ -179,6 +179,7 @@ def simulation_production(
         meanUpperCI (float): The upper 95% confidence interval for the mean.\n
         pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of losing money.\n
         pLoseMoneyUpperCI (float): The upper 95% confidence interval for the probability of losing money.\n
+        valueAtRisk (float): The value at risk at the 5% level.\n
 
     Raises:\n
         HTTPException: If the inputs do not satisfy the following conditions:
@@ -236,6 +237,7 @@ def simulation_production(
         p_lose_money + 1.96 * np.sqrt(p_lose_money * (1 - p_lose_money) / 1000),
         2,
     )
+    value_at_risk = np.percentile(simulated_profits, 5)
     return {
         "simulatedProfits": simulated_profits,
         "meanProfit": mean_profit,
@@ -244,4 +246,5 @@ def simulation_production(
         "meanUpperCI": mean_upper_ci,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+        "valueAtRisk": value_at_risk,
     }
