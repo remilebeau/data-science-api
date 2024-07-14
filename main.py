@@ -424,7 +424,6 @@ def simulation_finance(
         "meanStandardError": mean_std_error,
         "meanLowerCI": mean_lower_ci,
         "meanUpperCI": mean_upper_ci,
-        "pLoseMoney": p_lose_money,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
