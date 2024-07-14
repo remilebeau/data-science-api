@@ -246,3 +246,118 @@ def simulation_production(
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
     }
+
+
+# @desc Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
+# @route GET /api/simulations/finance
+# @access public
+@app.get("/api/simulations/finance")
+def simulation_finance(
+    fixedCost: float,
+    yearOneMargin: float,
+    yearOneSalesMin: float,
+    yearOneSalesMode: float,
+    yearOneSalesMax: float,
+    annualMarginDecrease: float | None = None,
+    annualSalesDecayMin: float | None = None,
+    annualSalesDecayMode: float | None = None,
+    annualSalesDecayMax: float | None = None,
+    taxRate: float | None = None,
+    discountRate: float | None = None,
+):
+    # validate data
+    if not (
+        yearOneSalesMin <= yearOneSalesMode
+        and yearOneSalesMode <= yearOneSalesMax
+        and yearOneSalesMin < yearOneSalesMax
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Please ensure the following: 1) yearOneSalesMin <= yearOneSalesMode <= yearOneSalesMax 2) yearOneSalesMin < yearOneSalesMax",
+        )
+
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    # define demand distribution
+    demand_distribution = rng.triangular(
+        yearOneSalesMin, yearOneSalesMode, yearOneSalesMax, 1000
+    )
+
+    # define sales decay distribution, if provided
+    if (
+        annualSalesDecayMin
+        and annualSalesDecayMode
+        and annualSalesDecayMax
+        and annualSalesDecayMin <= annualSalesDecayMode
+        and annualSalesDecayMode <= annualSalesDecayMax
+        and annualSalesDecayMin < annualSalesDecayMax
+    ):
+        annualSalesDecayDistribution = rng.triangular(
+            annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
+        )
+    else:
+        annualSalesDecayDistribution = [0]
+
+    # define simulation
+    def simulation():
+        # unit sales year 1
+        unit_sales = [rng.choice(demand_distribution)]
+        # unit sales year 2-5
+        unit_sales.extend(
+            unit_sales[year - 1] * (1 - rng.choice(annualSalesDecayDistribution))
+            for year in range(1, 5)
+        )
+        # unit margin year 1
+        unit_margin = [yearOneMargin]
+        # unit margin year 2-5
+        unit_margin.extend(
+            unit_margin[year - 1] * (1 - (annualMarginDecrease or 0))
+            for year in range(1, 5)
+        )
+        # revenue - variable cost
+        revenue_minus_variable_cost = [
+            unit_sales[year] * unit_margin[year] for year in range(5)
+        ]
+        # depreciation
+        depreciation = fixedCost / 5
+        # before tax profit
+        before_tax_profit = [
+            revenue_minus_variable_cost[year] - depreciation for year in range(5)
+        ]
+        after_tax_profit = [
+            before_tax_profit[year] * (1 - (taxRate or 0)) for year in range(5)
+        ]
+        cash_flows = [-fixedCost]
+        cash_flows.extend([after_tax_profit[year] + depreciation for year in range(5)])
+        npv = npf.npv((discountRate or 0), cash_flows)
+        return npv
+
+    # run simulation
+    simulated_profits = [simulation() for _ in range(1000)]
+
+    # generate stats
+    mean_profit = np.mean(simulated_profits)
+    mean_std_error = np.std(simulated_profits) / np.sqrt(1000)
+    mean_lower_ci = mean_profit - 1.96 * mean_std_error
+    mean_upper_ci = mean_profit + 1.96 * mean_std_error
+    p_lose_money = sum([profit < 0 for profit in simulated_profits]) / 1000
+    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / 1000
+    )
+    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / 1000
+    )
+    value_at_risk = np.quantile(simulated_profits, 0.05)
+
+    return {
+        "simulatedNPVs": simulated_profits,
+        "meanNPV": mean_profit,
+        "meanStandardError": mean_std_error,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
+        "pLoseMoney": p_lose_money,
+        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+        "valueAtRisk": value_at_risk,
+    }
