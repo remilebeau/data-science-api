@@ -265,7 +265,49 @@ def simulation_finance(
     taxRate: float | None = None,
     discountRate: float | None = None,
 ):
+    """
+    Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
+
+    Args:\n
+        fixedCost (float): The fixed cost of the project.\n
+        yearOneMargin (float): Margin in year 1.\n
+        yearOneSalesMin (float): Minimum sales in year 1.\n
+        yearOneSalesMode (float): Expected sales in year 1.\n
+        yearOneSalesMax (float): Maximum sales in year 1.\n
+        annualMarginDecrease (float, optional): The annual margin decrease. Defaults to None.\n
+        annualSalesDecayMin (float, optional): The minimum sales decay. Defaults to None.\n
+        annualSalesDecayMode (float, optional): The expected sales decay. Defaults to None.\n
+        annualSalesDecayMax (float, optional): The maximum sales decay. Defaults to None.\n
+        taxRate (float, optional): The tax rate. Defaults to None.\n
+        discountRate (float, optional): The discount rate. Defaults to None.\n
+
+    Returns:\n
+        simulatedNPVs (list): A list of simulated NPVs.
+        meanNPV (float): The mean NPV.
+        meanStandardError (float): The standard error of the mean NPV.
+        meanLowerCI (float): The lower confidence interval of the mean NPV.
+        meanUpperCI (float): The upper confidence interval of the mean NPV.
+        pLoseMoney (float): The probability of losing money.
+        pLoseMoneyLowerCI (float): The lower confidence interval of the probability of losing money.
+        pLoseMoneyUpperCI (float): The upper confidence interval of the probability of losing money.
+        valueAtRisk (float): The value at risk.
+
+    Raises:\n
+        HTTPException: If the input values do not satisfy the following conditions:
+            - yearOneSalesMin <= yearOneSalesMode
+            - yearOneSalesMode <= yearOneSalesMax
+            - yearOneSalesMin < yearOneSalesMax
+            - annualSalesDecayMin <= annualSalesDecayMode
+            - annualSalesDecayMode <= annualSalesDecayMax
+            - annualSalesDecayMin < annualSalesDecayMax
+            - taxRate >= 0
+            - taxRate <= 1
+            - discountRate >= 0
+            - discountRate <= 1
+            A 400 status code and an error message are returned in this case.
+    """
     # validate data
+    # yearOneSales must fit a triangular distribution
     if not (
         yearOneSalesMin <= yearOneSalesMode
         and yearOneSalesMode <= yearOneSalesMax
@@ -273,7 +315,41 @@ def simulation_finance(
     ):
         raise HTTPException(
             status_code=400,
-            detail="Please ensure the following: 1) yearOneSalesMin <= yearOneSalesMode <= yearOneSalesMax 2) yearOneSalesMin < yearOneSalesMax",
+            detail="Please check that yearOneSalesMin <= yearOneSalesMode <= yearOneSalesMax and yearOneSalesMin < yearOneSalesMax.",
+        )
+    # if annualMarginDecrease is provided, it must be between 0 and 1
+    if not (
+        annualMarginDecrease is None
+        or (annualMarginDecrease >= 0 and annualMarginDecrease <= 1)
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="If annualMarginDecrease is provided, it must be between 0 and 1.",
+        )
+    # if annualSalesDecay is provided, it must fit a triangular distribution
+    if not (
+        annualSalesDecayMin is None
+        or annualSalesDecayMode is None
+        or annualSalesDecayMax is None
+        or annualSalesDecayMin <= annualSalesDecayMode
+        and annualSalesDecayMode <= annualSalesDecayMax
+        and annualSalesDecayMin < annualSalesDecayMax
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="If annual sales decay is provided, please check that annualSalesDecayMin <= annualSalesDecayMode <= annualSalesDecayMax and annualSalesDecayMin < annualSalesDecayMax.",
+        )
+    # if taxRate is provided, it must be between 0 and 1
+    if not (taxRate is None or (taxRate >= 0 and taxRate <= 1)):
+        raise HTTPException(
+            status_code=400,
+            detail="If taxRate is provided, it must be between 0 and 1.",
+        )
+    # if discountRate is provided, it must be between 0 and 1
+    if not (discountRate is None or (discountRate >= 0 and discountRate <= 1)):
+        raise HTTPException(
+            status_code=400,
+            detail="If discountRate is provided, it must be between 0 and 1.",
         )
 
     # set seed
@@ -285,14 +361,7 @@ def simulation_finance(
     )
 
     # define sales decay distribution, if provided
-    if (
-        annualSalesDecayMin
-        and annualSalesDecayMode
-        and annualSalesDecayMax
-        and annualSalesDecayMin <= annualSalesDecayMode
-        and annualSalesDecayMode <= annualSalesDecayMax
-        and annualSalesDecayMin < annualSalesDecayMax
-    ):
+    if annualSalesDecayMin and annualSalesDecayMode and annualSalesDecayMax:
         annualSalesDecayDistribution = rng.triangular(
             annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
         )
@@ -315,20 +384,24 @@ def simulation_finance(
             unit_margin[year - 1] * (1 - (annualMarginDecrease or 0))
             for year in range(1, 5)
         )
-        # revenue - variable cost
+        # revenue - variable cost for all 5 years
         revenue_minus_variable_cost = [
             unit_sales[year] * unit_margin[year] for year in range(5)
         ]
-        # depreciation
+        # depreciation for all 5 years
         depreciation = fixedCost / 5
-        # before tax profit
+        # before tax profit for all 5 years
         before_tax_profit = [
             revenue_minus_variable_cost[year] - depreciation for year in range(5)
         ]
+        # after tax profit for all 5 years
         after_tax_profit = [
             before_tax_profit[year] * (1 - (taxRate or 0)) for year in range(5)
         ]
+        # calculate npv
+        # add initial outflow in year 0
         cash_flows = [-fixedCost]
+        # add cash flows in years 1-5
         cash_flows.extend([after_tax_profit[year] + depreciation for year in range(5)])
         npv = npf.npv((discountRate or 0), cash_flows)
         return npv
