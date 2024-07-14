@@ -211,7 +211,7 @@ def simulation_production(
     # define simulation
     def simulation():
         # profit = revenues - costs = sales rev + salvage rev - production cost - fixed costs
-        realized_demand = rng.choice(demand_distribution)
+        realized_demand: float = rng.choice(demand_distribution)
         units_sold = min(productionQuantity, realized_demand)
         units_salvaged = max(productionQuantity - realized_demand, 0)
         production_cost = productionQuantity * unitCost
