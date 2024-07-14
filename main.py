@@ -269,41 +269,36 @@ def simulation_finance(
     Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
 
     Args:\n
-        fixedCost (float): The fixed cost of the project.\n
-        yearOneMargin (float): Margin in year 1.\n
-        yearOneSalesMin (float): Minimum sales in year 1.\n
-        yearOneSalesMode (float): Expected sales in year 1.\n
-        yearOneSalesMax (float): Maximum sales in year 1.\n
-        annualMarginDecrease (float, optional): The annual margin decrease. Defaults to None.\n
-        annualSalesDecayMin (float, optional): The minimum sales decay. Defaults to None.\n
-        annualSalesDecayMode (float, optional): The expected sales decay. Defaults to None.\n
-        annualSalesDecayMax (float, optional): The maximum sales decay. Defaults to None.\n
+        fixedCost (float): The total fixed cost of the project\n
+        yearOneMargin (float): Margin in year 1\n
+        yearOneSalesMin (float): Minimum sales in year 1\n
+        yearOneSalesMode (float): Expected sales in year 1\n
+        yearOneSalesMax (float): Maximum sales in year 1\n
+        annualMarginDecrease (float, optional): The annual margin decrease in years 2 to 5. Does not change from year to year. Defaults to None.\n
+        annualSalesDecayMin (float, optional): The minimum annual sales decay in years 2 to 5. Defaults to None.\n
+        annualSalesDecayMode (float, optional): The expected annual sales decay in years 2 to 5. Defaults to None.\n
+        annualSalesDecayMax (float, optional): The maximum annual sales decay in years 2 to 5. Defaults to None.\n
         taxRate (float, optional): The tax rate. Defaults to None.\n
         discountRate (float, optional): The discount rate. Defaults to None.\n
 
     Returns:\n
-        simulatedNPVs (list): A list of simulated NPVs.
-        meanNPV (float): The mean NPV.
-        meanStandardError (float): The standard error of the mean NPV.
-        meanLowerCI (float): The lower confidence interval of the mean NPV.
-        meanUpperCI (float): The upper confidence interval of the mean NPV.
-        pLoseMoney (float): The probability of losing money.
-        pLoseMoneyLowerCI (float): The lower confidence interval of the probability of losing money.
-        pLoseMoneyUpperCI (float): The upper confidence interval of the probability of losing money.
-        valueAtRisk (float): The value at risk.
+        simulatedNPVs (list): A list of simulated NPVs
+        meanNPV (float): The mean NPV
+        meanStandardError (float): The standard error of the mean NPV
+        meanLowerCI (float): The lower 95% confidence interval of the mean NPV
+        meanUpperCI (float): The upper 95% confidence interval of the mean NPV
+        pLoseMoney (float): The probability of losing money
+        pLoseMoneyLowerCI (float): The lower 95% confidence interval of the probability of losing money
+        pLoseMoneyUpperCI (float): The upper 95% confidence interval of the probability of losing money
+        valueAtRisk (float): The value at risk at the 5% level
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            - yearOneSalesMin <= yearOneSalesMode
-            - yearOneSalesMode <= yearOneSalesMax
-            - yearOneSalesMin < yearOneSalesMax
-            - annualSalesDecayMin <= annualSalesDecayMode
-            - annualSalesDecayMode <= annualSalesDecayMax
-            - annualSalesDecayMin < annualSalesDecayMax
-            - taxRate >= 0
-            - taxRate <= 1
-            - discountRate >= 0
-            - discountRate <= 1
+            - yearOneSales must fit a triangular distribution
+            - If annualMarginDecrease is provided, it must be between 0 and 1
+            - If annualSalesDecay is provided, it must fit a triangular distribution
+            - If taxRate is provided, it must be between 0 and 1
+            - If discountRate is provided, it must be between 0 and 1
             A 400 status code and an error message are returned in this case.
     """
     # validate data
