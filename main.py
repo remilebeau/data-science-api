@@ -238,7 +238,7 @@ def simulation_production(
     p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
         p_lose_money * (1 - p_lose_money) / 1000
     )
-    value_at_risk = np.percentile(simulated_profits, 5)
+    value_at_risk = min(np.percentile(simulated_profits, 5), 0)
     return {
         "simulatedProfits": simulated_profits,
         "meanProfit": mean_profit,
@@ -408,7 +408,7 @@ def simulation_finance(
     p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
         p_lose_money * (1 - p_lose_money) / 1000
     )
-    value_at_risk = np.quantile(simulated_profits, 0.05)
+    value_at_risk = min(np.quantile(simulated_profits, 0.05), 0)
 
     return {
         "simulatedNPVs": simulated_profits,
