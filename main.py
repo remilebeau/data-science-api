@@ -28,6 +28,10 @@ def is_percent(num: float):
     return num >= 0 and num <= 1
 
 
+def is_all_zero(*args):
+    return all(value == 0 for value in args)
+
+
 # @desc returns 1000 random values from a triangular distribution
 # @route GET /api/distributions/triangular
 # @access public
@@ -312,9 +316,10 @@ def simulation_finance(
             status_code=400,
             detail="annualMarginDecrease must be between 0 and 1.",
         )
-    # annualSalesDecay must fit a triangular distribution
-    if not is_triangular(
-        annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax
+    # annualSalesDecay must be all zeroes or fit a triangular distribution
+    if not (
+        is_all_zero(annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax)
+        or is_triangular(annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax)
     ):
         raise HTTPException(
             status_code=400,
@@ -342,9 +347,14 @@ def simulation_finance(
     )
 
     # define sales decay distribution
-    annual_sales_decay_distribution = rng.triangular(
-        annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
-    )
+    # if sales decay is all zeroes, set it to [0]
+    if is_all_zero(annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax):
+        annual_sales_decay_distribution = [0]
+    # if sales decay is not all zeroes, set it to a triangular distribution
+    else:
+        annual_sales_decay_distribution = rng.triangular(
+            annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
+        )
 
     # define simulation
     def simulation():
