@@ -163,7 +163,7 @@ def simulation_production(
     productionQuantity: float,
 ):
     """
-    Simulates production and calculates various statistics based on the simulation results.
+    Simulates production and returns a 95% confidence interval of the expected profit, a 95% confidence interval of the probability of a negative profit, and the value at risk at the 5% level based on the simulation results. Demand follows a triangular distribution. 1000 simulations.
 
     Args:\n
         unitCost (float): The production cost per unit.\n
@@ -177,12 +177,12 @@ def simulation_production(
 
     Returns:\n
         simulatedProfits (list): A list of 1000 simulated profits.\n
-        meanProfit (float): The mean of the 1000 simulated profits.\n
-        meanStandardError (float): The standard error of the mean.\n
-        meanLowerCI (float): The lower 95% confidence interval for the mean.\n
-        meanUpperCI (float): The upper 95% confidence interval for the mean.\n
-        pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of losing money.\n
-        pLoseMoneyUpperCI (float): The upper 95% confidence interval for the probability of losing money.\n
+        meanProfit (float): The expected of the 1000 simulated profits.\n
+        meanStandardError (float): The standard error of the expected profit.\n
+        meanLowerCI (float): The lower 95% confidence interval for the expected profit.\n
+        meanUpperCI (float): The upper 95% confidence interval for the expected profit.\n
+        pLoseMoneyLowerCI (float): The lower 95% confidence interval for the probability of a negative profit.\n
+        pLoseMoneyUpperCI (float): The upper 95% confidence interval for the probability of a negative profit.\n
         valueAtRisk (float): The value at risk at the 5% level.\n
 
     Raises:\n
@@ -265,7 +265,7 @@ def simulation_finance(
     discountRate: float,
 ):
     """
-    Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
+    Simulates a financial project and returns a 95% confidence interval of the mean NPV, a 95% confidence interval of the probability of a negative NPV, and the value at risk at the 5% level based on the simulation results. Planning horizon = 5 years. Sales and sales decay follow a triangular distribution. 1000 simulations.
 
     Args:\n
         fixedCost (float): The total fixed cost of the project.\n
