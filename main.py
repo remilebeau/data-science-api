@@ -359,8 +359,7 @@ def simulation_finance(
         unit_margin = [yearOneMargin]
         # unit margin year 2-5
         unit_margin.extend(
-            unit_margin[year - 1] * (1 - (annualMarginDecrease or 0))
-            for year in range(1, 5)
+            unit_margin[year - 1] * (1 - (annualMarginDecrease)) for year in range(1, 5)
         )
         # revenue minus variable cost for all 5 years
         revenue_minus_variable_cost = [
@@ -374,14 +373,14 @@ def simulation_finance(
         ]
         # after tax profit for all 5 years
         after_tax_profit = [
-            before_tax_profit[year] * (1 - (taxRate or 0)) for year in range(5)
+            before_tax_profit[year] * (1 - (taxRate)) for year in range(5)
         ]
         # calculate npv
         # add initial outflow in year 0
         cash_flows = [-fixedCost]
         # add cash flows in years 1-5
         cash_flows.extend([after_tax_profit[year] + depreciation for year in range(5)])
-        npv = npf.npv((discountRate or 0), cash_flows)
+        npv = npf.npv((discountRate), cash_flows)
         return npv
 
     # run simulation
