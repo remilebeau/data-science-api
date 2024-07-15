@@ -278,7 +278,7 @@ def simulation_finance(
         yearOneSalesMode (float): Expected sales in year 1.\n
         yearOneSalesMax (float): Maximum sales in year 1.\n
         annualMarginDecrease (float): The annual margin decrease in years 2 to 5. Does not change from year to year.\n
-        annualSalesDecayMin (float): The minimum annual sales decay in years 2 to 5.\n
+        annualSalesDecayMin (float): The minimum annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 to disregard annual sales decay.\n
         annualSalesDecayMode (float): The expected annual sales decay in years 2 to 5.\n
         annualSalesDecayMax (float): The maximum annual sales decay in years 2 to 5.\n
         taxRate (float): The tax rate.\n
@@ -298,7 +298,7 @@ def simulation_finance(
         HTTPException: If the input values do not satisfy the following conditions:
             - yearOneSales must fit a triangular distribution
             - annualMarginDecrease must be between 0 and 1
-            - annualSalesDecay must fit a triangular distribution
+            - annualSalesDecay must be all 0 or fit a triangular distribution
             - taxRate must be between 0 and 1
             - discountRate must be between 0 and 1
             A 400 status code and an error message are returned in this case.
@@ -323,7 +323,7 @@ def simulation_finance(
     ):
         raise HTTPException(
             status_code=400,
-            detail="Please check that annualSalesDecayMin <= annualSalesDecayMode <= annualSalesDecayMax and annualSalesDecayMin < annualSalesDecayMax.",
+            detail="Please check that annualSalesDecayMin <= annualSalesDecayMode <= annualSalesDecayMax and annualSalesDecayMin < annualSalesDecayMax. Or set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 to disregard annual sales decay.",
         )
     # taxRate must be a percentage
     if not is_percent(taxRate):
