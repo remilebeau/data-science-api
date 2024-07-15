@@ -257,28 +257,28 @@ def simulation_finance(
     yearOneSalesMin: float,
     yearOneSalesMode: float,
     yearOneSalesMax: float,
-    annualMarginDecrease: float | None = None,
-    annualSalesDecayMin: float | None = None,
-    annualSalesDecayMode: float | None = None,
-    annualSalesDecayMax: float | None = None,
-    taxRate: float | None = None,
-    discountRate: float | None = None,
+    annualMarginDecrease: float,
+    annualSalesDecayMin: float,
+    annualSalesDecayMode: float,
+    annualSalesDecayMax: float,
+    taxRate: float,
+    discountRate: float,
 ):
     """
     Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
 
     Args:\n
-        fixedCost (float): The total fixed cost of the project\n
-        yearOneMargin (float): Margin in year 1\n
-        yearOneSalesMin (float): Minimum sales in year 1\n
-        yearOneSalesMode (float): Expected sales in year 1\n
-        yearOneSalesMax (float): Maximum sales in year 1\n
-        annualMarginDecrease (float, optional): The annual margin decrease in years 2 to 5. Does not change from year to year. Defaults to None.\n
-        annualSalesDecayMin (float, optional): The minimum annual sales decay in years 2 to 5. Defaults to None.\n
-        annualSalesDecayMode (float, optional): The expected annual sales decay in years 2 to 5. Defaults to None.\n
-        annualSalesDecayMax (float, optional): The maximum annual sales decay in years 2 to 5. Defaults to None.\n
-        taxRate (float, optional): The tax rate. Defaults to None.\n
-        discountRate (float, optional): The discount rate. Defaults to None.\n
+        fixedCost (float): The total fixed cost of the project.\n
+        yearOneMargin (float): Margin in year 1.\n
+        yearOneSalesMin (float): Minimum sales in year 1.\n
+        yearOneSalesMode (float): Expected sales in year 1.\n
+        yearOneSalesMax (float): Maximum sales in year 1.\n
+        annualMarginDecrease (float): The annual margin decrease in years 2 to 5. Does not change from year to year.\n
+        annualSalesDecayMin (float): The minimum annual sales decay in years 2 to 5.\n
+        annualSalesDecayMode (float): The expected annual sales decay in years 2 to 5.\n
+        annualSalesDecayMax (float): The maximum annual sales decay in years 2 to 5.\n
+        taxRate (float): The tax rate.\n
+        discountRate (float): The discount rate.\n
 
     Returns:\n
         simulatedNPVs (list): A list of simulated NPVs
@@ -286,7 +286,6 @@ def simulation_finance(
         meanStandardError (float): The standard error of the mean NPV
         meanLowerCI (float): The lower 95% confidence interval of the mean NPV
         meanUpperCI (float): The upper 95% confidence interval of the mean NPV
-        pLoseMoney (float): The probability of losing money
         pLoseMoneyLowerCI (float): The lower 95% confidence interval of the probability of losing money
         pLoseMoneyUpperCI (float): The upper 95% confidence interval of the probability of losing money
         valueAtRisk (float): The value at risk at the 5% level
@@ -294,10 +293,10 @@ def simulation_finance(
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
             - yearOneSales must fit a triangular distribution
-            - If annualMarginDecrease is provided, it must be between 0 and 1
-            - If annualSalesDecay is provided, it must fit a triangular distribution
-            - If taxRate is provided, it must be between 0 and 1
-            - If discountRate is provided, it must be between 0 and 1
+            - annualMarginDecrease must be between 0 and 1
+            - annualSalesDecay must fit a triangular distribution
+            - taxRate must be between 0 and 1
+            - discountRate must be between 0 and 1
             A 400 status code and an error message are returned in this case.
     """
     # validate data
