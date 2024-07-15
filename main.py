@@ -19,6 +19,15 @@ app.add_middleware(
 )
 
 
+# utility functions for validation
+def is_triangular(min: float, mode: float, max: float):
+    return min <= mode and mode <= max and min < max
+
+
+def is_percent(num: float):
+    return num >= 0 and num <= 1
+
+
 # @desc returns 1000 random values from a triangular distribution
 # @route GET /api/distributions/triangular
 # @access public
@@ -44,8 +53,8 @@ def distribution_triangular(distMin: float, distMode: float, distMax: float):
     """
     # set seed
     rng = np.random.default_rng(seed=42)
-    # check min <= mode and mode <= max and min < max
-    if not (distMin <= distMode and distMode <= distMax and distMin < distMax):
+    # validate data
+    if not is_triangular(distMin, distMode, distMax):
         raise HTTPException(
             status_code=400,
             detail="Please ensure the following: 1) distMin <= distMode <= distMax 2) distMin < distMax",
@@ -76,7 +85,7 @@ def distribution_uniform(distMin: int, distMax: int):
     """
     # set seed
     rng = np.random.default_rng(seed=42)
-    # check min < max
+    # validate data
     if not (distMin < distMax):
         raise HTTPException(
             status_code=400,
@@ -115,12 +124,7 @@ def distribution_truncated_normal(
             A 400 status code and an error message are returned in this case.
     """
     # validate data
-    if not (
-        distMin <= distMean
-        and distMean <= distMax
-        and distMin < distMax
-        and distSD >= 0
-    ):
+    if not (is_triangular(distMin, distMean, distMax) and distSD >= 0):
         raise HTTPException(
             status_code=400,
             detail="Please ensure the following: 1) distMin <= distMean <= distMax 2) distMin < distMax 3) distSD >= 0",
@@ -130,7 +134,7 @@ def distribution_truncated_normal(
     rng = np.random.default_rng(seed=42)
 
     # truncate with custom function
-    def truncated_normal(min, max, mean, sd):
+    def truncated_normal(min, mean, max, sd):
         value = rng.normal(mean, sd)
         if value < min or value > max:
             value = truncated_normal(min, max, mean, sd)
@@ -191,12 +195,7 @@ def simulation_production(
 
     """
     # validate data
-    if not (
-        demandMin <= demandMode
-        and demandMode <= demandMax
-        and demandMin < demandMax
-        and productionQuantity > 0
-    ):
+    if not (is_triangular(demandMin, demandMode, demandMax) and productionQuantity > 0):
         raise HTTPException(
             status_code=400,
             detail="Please ensure the following: 1) demandMin <= demandMode <= demandMax 2) demandMin < demandMax 3) productionQuantity > 0",
@@ -303,48 +302,36 @@ def simulation_finance(
     """
     # validate data
     # yearOneSales must fit a triangular distribution
-    if not (
-        yearOneSalesMin <= yearOneSalesMode
-        and yearOneSalesMode <= yearOneSalesMax
-        and yearOneSalesMin < yearOneSalesMax
-    ):
+    if not is_triangular(yearOneSalesMin, yearOneSalesMode, yearOneSalesMax):
         raise HTTPException(
             status_code=400,
             detail="Please check that yearOneSalesMin <= yearOneSalesMode <= yearOneSalesMax and yearOneSalesMin < yearOneSalesMax.",
         )
-    # if annualMarginDecrease is provided, it must be between 0 and 1
-    if not (
-        annualMarginDecrease is None
-        or (annualMarginDecrease >= 0 and annualMarginDecrease <= 1)
+    # annualMarginDecrease must be a percentage
+    if not is_percent(annualMarginDecrease):
+        raise HTTPException(
+            status_code=400,
+            detail="annualMarginDecrease must be between 0 and 1.",
+        )
+    # annualSalesDecay must fit a triangular distribution
+    if not is_triangular(
+        annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax
     ):
         raise HTTPException(
             status_code=400,
-            detail="If annualMarginDecrease is provided, it must be between 0 and 1.",
+            detail="Please check that annualSalesDecayMin <= annualSalesDecayMode <= annualSalesDecayMax and annualSalesDecayMin < annualSalesDecayMax.",
         )
-    # if annualSalesDecay is provided, it must fit a triangular distribution
-    if not (
-        annualSalesDecayMin is None
-        or annualSalesDecayMode is None
-        or annualSalesDecayMax is None
-        or annualSalesDecayMin <= annualSalesDecayMode
-        and annualSalesDecayMode <= annualSalesDecayMax
-        and annualSalesDecayMin < annualSalesDecayMax
-    ):
+    # taxRate must be a percentage
+    if not is_percent(taxRate):
         raise HTTPException(
             status_code=400,
-            detail="If annual sales decay is provided, please check that annualSalesDecayMin <= annualSalesDecayMode <= annualSalesDecayMax and annualSalesDecayMin < annualSalesDecayMax.",
+            detail="taxRate must be between 0 and 1.",
         )
-    # if taxRate is provided, it must be between 0 and 1
-    if not (taxRate is None or (taxRate >= 0 and taxRate <= 1)):
+    # discountRate must be a percentage
+    if not is_percent(discountRate):
         raise HTTPException(
             status_code=400,
-            detail="If taxRate is provided, it must be between 0 and 1.",
-        )
-    # if discountRate is provided, it must be between 0 and 1
-    if not (discountRate is None or (discountRate >= 0 and discountRate <= 1)):
-        raise HTTPException(
-            status_code=400,
-            detail="If discountRate is provided, it must be between 0 and 1.",
+            detail="discountRate must be between 0 and 1.",
         )
 
     # set seed
@@ -355,13 +342,10 @@ def simulation_finance(
         yearOneSalesMin, yearOneSalesMode, yearOneSalesMax, 1000
     )
 
-    # define sales decay distribution, if provided
-    if annualSalesDecayMin and annualSalesDecayMode and annualSalesDecayMax:
-        annualSalesDecayDistribution = rng.triangular(
-            annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
-        )
-    else:
-        annualSalesDecayDistribution = [0]
+    # define sales decay distribution
+    annual_sales_decay_distribution = rng.triangular(
+        annualSalesDecayMin, annualSalesDecayMode, annualSalesDecayMax, 1000
+    )
 
     # define simulation
     def simulation():
@@ -369,7 +353,7 @@ def simulation_finance(
         unit_sales = [rng.choice(demand_distribution)]
         # unit sales year 2-5
         unit_sales.extend(
-            unit_sales[year - 1] * (1 - rng.choice(annualSalesDecayDistribution))
+            unit_sales[year - 1] * (1 - rng.choice(annual_sales_decay_distribution))
             for year in range(1, 5)
         )
         # unit margin year 1
@@ -379,7 +363,7 @@ def simulation_finance(
             unit_margin[year - 1] * (1 - (annualMarginDecrease or 0))
             for year in range(1, 5)
         )
-        # revenue - variable cost for all 5 years
+        # revenue minus variable cost for all 5 years
         revenue_minus_variable_cost = [
             unit_sales[year] * unit_margin[year] for year in range(5)
         ]
