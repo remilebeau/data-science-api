@@ -1,5 +1,6 @@
 import numpy as np
 import numpy_financial as npf
+from pydantic import BaseModel
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,6 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# model for bootstrapped data
+class Bootstrap(BaseModel):
+    values: list[float]
 
 
 # utility functions for validation
@@ -150,6 +156,17 @@ def distribution_truncated_normal(
     ]
 
     return {"distValues": distValues}
+
+
+# @desc return a nonparametric bootstrapped dataset
+# @route POST /api/distributions/bootstrap
+# @access public
+@app.post("/api/distributions/bootstrap")
+def distribution_bootstrap(dataset: Bootstrap):
+    values = dataset.values
+    rng = np.random.default_rng(seed=42)
+    bootstrap = rng.choice(values, size=len(values), replace=True).tolist()
+    return {"bootstrapValues": bootstrap}
 
 
 # @desc Monte Carlo simulation for production planning. Triangular distribution. n = 1000. α = 0.05
