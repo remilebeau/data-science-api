@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from ..controllers.distributions import (
+from ..controllers.distribution_controller import (
     distribution_triangular,
     distribution_uniform,
     distribution_truncated_normal,

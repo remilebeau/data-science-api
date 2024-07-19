@@ -1,5 +1,8 @@
 from fastapi import APIRouter
-from ..controllers.simulations import simulation_production, simulation_finance
+from ..controllers.simulation_controller import (
+    simulation_production,
+    simulation_finance,
+)
 
 router = APIRouter(
     prefix="/api/simulations",
