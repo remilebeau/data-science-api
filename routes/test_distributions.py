@@ -11,8 +11,13 @@ def test_distributions_triangular():
         "/api/distributions/triangular",
         params=params,
     )
+    response_two = client.get(
+        "/api/distributions/triangular",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["distValues"]) == 1000
+    assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
 def test_distributions_uniform():
@@ -21,8 +26,13 @@ def test_distributions_uniform():
         "/api/distributions/uniform",
         params=params,
     )
+    response_two = client.get(
+        "/api/distributions/uniform",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["distValues"]) == 1000
+    assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
 def test_distributions_truncated_normal():
@@ -36,8 +46,13 @@ def test_distributions_truncated_normal():
         "/api/distributions/truncated_normal",
         params=params,
     )
+    response_two = client.get(
+        "/api/distributions/truncated_normal",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["distValues"]) == 1000
+    assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
 def test_distributions_bootstrap():
@@ -46,5 +61,10 @@ def test_distributions_bootstrap():
         "/api/distributions/bootstrap",
         json={"values": values},
     )
+    response_two = client.post(
+        "/api/distributions/bootstrap",
+        json={"values": values},
+    )
     assert response.status_code == 200
     assert len(response.json()["bootstrapValues"]) == len(values)
+    assert response.json()["bootstrapValues"] == response_two.json()["bootstrapValues"]
