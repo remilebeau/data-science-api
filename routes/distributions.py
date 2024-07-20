@@ -73,7 +73,7 @@ def distribution_uniform(distMin: int, distMax: int):
     # set seed
     rng = np.random.default_rng(seed=42)
     # validate data
-    if not (distMin < distMax):
+    if distMin >= distMax:
         raise HTTPException(
             status_code=400,
             detail="Please ensure the following: distMin < distMax",
@@ -147,7 +147,7 @@ def distribution_truncated_normal(
             A 400 status code and an error message are returned in this case.
     """
     # validate data
-    if not (is_triangular(distMin, distMean, distMax) and distSD >= 0):
+    if not is_triangular(distMin, distMean, distMax) or distSD < 0:
         raise HTTPException(
             status_code=400,
             detail="Please ensure the following: 1) distMin <= distMean <= distMax 2) distMin < distMax 3) distSD >= 0",
