@@ -54,9 +54,17 @@ def test_simulations_finance_all_params():
         "/api/simulations/finance",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["simulatedNPVs"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
+    # check the simulation for accuracy. The mean NPV with these inputs should be between 30,000,000 and 32,000,000
+    assert (
+        response.json()["meanNPV"] >= 30000000
+        and response.json()["meanNPV"] <= 32000000
+    )
 
 
 """
@@ -101,6 +109,9 @@ def test_simulations_finance_no_margin_some_params():
         "/api/simulations/finance",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["simulatedNPVs"]) == 1000
+    # check that the 1000 values are reproducible
     assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
