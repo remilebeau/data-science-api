@@ -254,8 +254,8 @@ def simulation_finance(
 
     # generate stats
     (
-        mean,
-        standard_error,
+        mean_npv,
+        mean_std_error,
         mean_lower_ci,
         mean_upper_ci,
         p_lose_money_lower_ci,
@@ -265,8 +265,8 @@ def simulation_finance(
 
     return {
         "simulatedNPVs": simulated_profits,
-        "meanNPV": mean,
-        "meanStandardError": standard_error,
+        "meanNPV": mean_npv,
+        "meanStandardError": mean_std_error,
         "meanLowerCI": mean_lower_ci,
         "meanUpperCI": mean_upper_ci,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
