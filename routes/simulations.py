@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import numpy as np
 import numpy_financial as npf
-from ..utils.utils import is_triangular, is_percent, is_all_zero
+from ..utils.utils import is_triangular, is_percent, is_all_zero, generate_stats
 
 router = APIRouter(
     prefix="/api/simulations",
@@ -85,18 +85,16 @@ def simulation_production(
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
-    mean_profit = np.mean(simulated_profits)
-    mean_std_error = np.std(simulated_profits) / np.sqrt(1000)
-    mean_lower_ci = mean_profit - 1.96 * mean_std_error
-    mean_upper_ci = mean_profit + 1.96 * mean_std_error
-    p_lose_money = sum(profit < 0 for profit in simulated_profits) / 1000
-    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / 1000
-    )
-    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / 1000
-    )
-    value_at_risk = min(np.percentile(simulated_profits, 5), 0)
+    (
+        mean_profit,
+        mean_std_error,
+        mean_lower_ci,
+        mean_upper_ci,
+        p_lose_money_lower_ci,
+        p_lose_money_upper_ci,
+        value_at_risk,
+    ) = generate_stats(simulated_profits)
+
     return {
         "simulatedProfits": simulated_profits,
         "meanProfit": mean_profit,
@@ -255,23 +253,20 @@ def simulation_finance(
     simulated_profits = [simulation() for _ in range(1000)]
 
     # generate stats
-    mean_profit = np.mean(simulated_profits)
-    mean_std_error = np.std(simulated_profits) / np.sqrt(1000)
-    mean_lower_ci = mean_profit - 1.96 * mean_std_error
-    mean_upper_ci = mean_profit + 1.96 * mean_std_error
-    p_lose_money = sum([profit < 0 for profit in simulated_profits]) / 1000
-    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / 1000
-    )
-    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / 1000
-    )
-    value_at_risk = min(np.quantile(simulated_profits, 0.05), 0)
+    (
+        mean,
+        standard_error,
+        mean_lower_ci,
+        mean_upper_ci,
+        p_lose_money_lower_ci,
+        p_lose_money_upper_ci,
+        value_at_risk,
+    ) = generate_stats(simulated_profits)
 
     return {
         "simulatedNPVs": simulated_profits,
-        "meanNPV": mean_profit,
-        "meanStandardError": mean_std_error,
+        "meanNPV": mean,
+        "meanStandardError": standard_error,
         "meanLowerCI": mean_lower_ci,
         "meanUpperCI": mean_upper_ci,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
