@@ -24,10 +24,18 @@ def test_simulations_production():
         "/api/simulations/production",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["simulatedProfits"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert (
         response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
+    )
+    # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
+    assert (
+        response.json()["meanProfit"] >= 47000
+        and response.json()["meanProfit"] <= 49000
     )
 
 
@@ -85,9 +93,8 @@ The remaining parameters will be set to 0:
 """
 
 
-# @desc
 # @route GET /api/simulations/finance
-def test_simulations_finance_no_margin_some_params():
+def test_simulations_finance_some_params():
     params = {
         "fixedCost": 700000000,
         "yearOneMargin": 4000,
@@ -113,5 +120,5 @@ def test_simulations_finance_no_margin_some_params():
     assert response.status_code == 200
     # check that 1000 values were returned
     assert len(response.json()["simulatedNPVs"]) == 1000
-    # check that the 1000 values are reproducible
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
