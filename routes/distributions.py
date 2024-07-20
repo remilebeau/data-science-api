@@ -83,6 +83,42 @@ def distribution_uniform(distMin: int, distMax: int):
     return {"distValues": distValues}
 
 
+# @desc returns 1000 random values from a normal distribution
+# @route GET /api/distributions/normal
+# @access public
+@router.get("/normal")
+def distribution_normal(distMean: float, distSD: float):
+    """
+    Returns 1000 pseudorandom values from a normal distribution.
+
+    Args:\n
+        distMean (float): The mean value of the distribution.\n
+        distSD (float): The standard deviation of the distribution.\n
+
+    Returns:\n
+        distValues (list): A list of 1000 pseudorandom values from a normal distribution.
+
+    Raises:\n
+        HTTPException: If the input values do not satisfy the following conditions:
+            - distSD >= 0
+            A 400 status code and an error message are returned in this case.
+    """
+    # validate data
+    if distSD < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="Please ensure the following: distSD >= 0",
+        )
+
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    # generate distribution
+    distValues = rng.normal(distMean, distSD, 1000).tolist()
+
+    return {"distValues": distValues}
+
+
 # @desc returns 1000 random values from a truncated normal distribution
 # @route GET /api/distributions/truncated_normal
 # @access public

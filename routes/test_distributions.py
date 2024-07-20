@@ -35,6 +35,26 @@ def test_distributions_uniform():
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
+def test_distributions_normal():
+    params = {
+        "distMin": 200,
+        "distMean": 400,
+        "distMax": 600,
+        "distSD": 100,
+    }
+    response = client.get(
+        "/api/distributions/normal",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/distributions/normal",
+        params=params,
+    )
+    assert response.status_code == 200
+    assert len(response.json()["distValues"]) == 1000
+    assert response.json()["distValues"] == response_two.json()["distValues"]
+
+
 def test_distributions_truncated_normal():
     params = {
         "distMin": 200,
