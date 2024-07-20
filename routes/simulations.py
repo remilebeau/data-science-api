@@ -13,7 +13,7 @@ router = APIRouter(
 # @desc Monte Carlo simulation for production planning. Triangular distribution. n = 1000. α = 0.05
 # @route GET /api/simulations/production
 # @access public
-@router.get("/api/simulations/production")
+@router.get("/production")
 def simulation_production(
     unitCost: float,
     unitPrice: float,
@@ -112,7 +112,7 @@ def simulation_production(
 # @desc Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
 # @route GET /api/simulations/finance
 # @access public
-@router.get("/api/simulations/finance")
+@router.get("/finance")
 def simulation_finance(
     fixedCost: float,
     yearOneMargin: float,
