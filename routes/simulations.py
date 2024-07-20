@@ -49,10 +49,10 @@ def simulation_production(
 
     Raises:\n
         HTTPException: If the inputs do not satisfy the following conditions:
-            - demandMin <= demandMode
-            - demandMode <= demandMax
-            - demandMin < demandMax
-            - productionQuantity > 0
+            demandMin <= demandMode
+            demandMode <= demandMax
+            demandMin < demandMax
+            productionQuantity > 0
             A 400 status code and an error message are returned in this case.
 
     """
@@ -152,11 +152,11 @@ def simulation_finance(
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            - yearOneSales must fit a triangular distribution
-            - annualMarginDecrease must be between 0 and 1
-            - annualSalesDecay must be all 0 or fit a triangular distribution
-            - taxRate must be between 0 and 1
-            - discountRate must be between 0 and 1
+            yearOneSales must fit a triangular distribution
+            annualMarginDecrease must be between 0 and 1
+            annualSalesDecay must be all 0 or fit a triangular distribution
+            taxRate must be between 0 and 1
+            discountRate must be between 0 and 1
             A 400 status code and an error message are returned in this case.
     """
     # validate data

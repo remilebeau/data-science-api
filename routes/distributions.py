@@ -33,9 +33,9 @@ def distribution_triangular(distMin: float, distMode: float, distMax: float):
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            - distMin <= distMode
-            - distMode <= distMax
-            - distMin < distMax
+            distMin <= distMode
+            distMode <= distMax
+            distMin < distMax
             A 400 status code and an error message are returned in this case.
     """
     # set seed
@@ -67,7 +67,8 @@ def distribution_uniform(distMin: int, distMax: int):
         distValues (list): A list of 1000 pseudorandom values from a uniform distribution.
 
     Raises:\n
-        HTTPException: If the input values do not satisfy the following condition: distMin < distMax.
+        HTTPException: If the input values do not satisfy the following condition:
+            distMin < distMax
             A 400 status code and an error message are returned in this case.
     """
     # set seed
@@ -100,7 +101,7 @@ def distribution_normal(distMean: float, distSD: float):
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            - distSD >= 0
+            distSD >= 0
             A 400 status code and an error message are returned in this case.
     """
     # validate data
@@ -140,10 +141,10 @@ def distribution_truncated_normal(
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            - distMin <= distMean
-            - distMean <= distMax
-            - distMin < distMax
-            - distSD >= 0
+            distMin <= distMean
+            distMean <= distMax
+            distMin < distMax
+            distSD >= 0
             A 400 status code and an error message are returned in this case.
     """
     # validate data
