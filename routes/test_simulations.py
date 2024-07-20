@@ -20,8 +20,15 @@ def test_simulations_production():
         "/api/simulations/production",
         params=params,
     )
+    response_two = client.get(
+        "/api/simulations/production",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["simulatedProfits"]) == 1000
+    assert (
+        response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
+    )
 
 
 # @desc Testing /api/simulations/finance with all parameters
@@ -43,8 +50,13 @@ def test_simulations_finance_all_params():
         "/api/simulations/finance",
         params=params,
     )
+    response_two = client.get(
+        "/api/simulations/finance",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["simulatedNPVs"]) == 1000
+    assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
 
 
 """
@@ -85,5 +97,10 @@ def test_simulations_finance_no_margin_some_params():
         "/api/simulations/finance",
         params=params,
     )
+    response_two = client.get(
+        "/api/simulations/finance",
+        params=params,
+    )
     assert response.status_code == 200
     assert len(response.json()["simulatedNPVs"]) == 1000
+    assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
