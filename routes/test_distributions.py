@@ -5,6 +5,8 @@ from ..main import app
 client = TestClient(app)
 
 
+# @desc test for triangular distribution
+# @route GET /api/distributions/triangular
 def test_distributions_triangular():
     params = {"distMin": 200, "distMode": 400, "distMax": 600}
     response = client.get(
@@ -20,6 +22,8 @@ def test_distributions_triangular():
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
+# @desc test for uniform distribution
+# @route GET /api/distributions/uniform
 def test_distributions_uniform():
     params = {"distMin": 200, "distMax": 600}
     response = client.get(
@@ -35,6 +39,8 @@ def test_distributions_uniform():
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
+# @desc test for normal distribution
+# @route GET /api/distributions/normal
 def test_distributions_normal():
     params = {
         "distMin": 200,
@@ -55,6 +61,8 @@ def test_distributions_normal():
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
+# @desc test for truncated normal distribution
+# @route GET /api/distributions/truncated_normal
 def test_distributions_truncated_normal():
     params = {
         "distMin": 200,

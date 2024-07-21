@@ -170,14 +170,3 @@ def distribution_truncated_normal(
     ]
 
     return {"distValues": distValues}
-
-
-# @desc return a nonparametric bootstrapped dataset
-# @route POST /api/distributions/bootstrap
-# @access public
-@router.post("/bootstrap")
-def distribution_bootstrap(dataset: Bootstrap):
-    values = dataset.values
-    rng = np.random.default_rng(seed=42)
-    bootstrap = rng.choice(values, size=len(values), replace=True).tolist()
-    return {"bootstrapValues": bootstrap}
