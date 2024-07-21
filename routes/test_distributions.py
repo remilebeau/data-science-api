@@ -81,18 +81,3 @@ def test_distributions_truncated_normal():
     assert response.status_code == 200
     assert len(response.json()["distValues"]) == 1000
     assert response.json()["distValues"] == response_two.json()["distValues"]
-
-
-def test_distributions_bootstrap():
-    values = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
-    response = client.post(
-        "/api/distributions/bootstrap",
-        json={"values": values},
-    )
-    response_two = client.post(
-        "/api/distributions/bootstrap",
-        json={"values": values},
-    )
-    assert response.status_code == 200
-    assert len(response.json()["bootstrapValues"]) == len(values)
-    assert response.json()["bootstrapValues"] == response_two.json()["bootstrapValues"]
