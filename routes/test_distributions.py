@@ -17,8 +17,11 @@ def test_distributions_triangular():
         "/api/distributions/triangular",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["distValues"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
@@ -34,8 +37,11 @@ def test_distributions_uniform():
         "/api/distributions/uniform",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["distValues"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
@@ -56,8 +62,11 @@ def test_distributions_normal():
         "/api/distributions/normal",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["distValues"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
 
 
@@ -78,6 +87,9 @@ def test_distributions_truncated_normal():
         "/api/distributions/truncated_normal",
         params=params,
     )
+    # check status code
     assert response.status_code == 200
+    # check that 1000 values were returned
     assert len(response.json()["distValues"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
