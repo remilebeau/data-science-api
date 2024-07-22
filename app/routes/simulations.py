@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import numpy as np
 import numpy_financial as npf
-from utils.utils import is_triangular, is_percent, is_all_zero, generate_stats
+from ..utils.utils import is_triangular, is_percent, is_all_zero, generate_stats
 
 router = APIRouter(
     prefix="/api/simulations",

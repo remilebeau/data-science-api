@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from .utils import is_triangular, is_percent, is_all_zero
-from main import app
+from ..main import app
 
 client = TestClient(app)
 
