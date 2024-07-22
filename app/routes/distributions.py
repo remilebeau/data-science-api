@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import numpy as np
 from pydantic import BaseModel
-from ..utils.utils import is_triangular
+from utils.utils import is_triangular
 
 router = APIRouter(
     prefix="/api/distributions",
