@@ -10,11 +10,6 @@ router = APIRouter(
 )
 
 
-# model for bootstrapped data
-class Bootstrap(BaseModel):
-    values: list[float]
-
-
 # @desc returns 1000 random values from a triangular distribution
 # @route GET /api/distributions/triangular
 # @access public
