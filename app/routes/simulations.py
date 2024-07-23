@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-# @desc Monte Carlo simulation for production planning. Triangular distribution. n = 1000. α = 0.05
+# @desc Monte Carlo simulation for production planning. If demandSD == 0, demand follows a triangular distribution. If demandSD > 0, demand follows a truncated normal distribution. n = 1000. α = 0.05
 # @route GET /api/simulations/production
 # @access public
 @router.get("/production")
@@ -21,9 +21,9 @@ def simulation_production(
     demandMin: float,
     demandMode: float,
     demandMax: float,
+    demandSD: float,
     fixedCost: float,
     productionQuantity: float,
-    demandSD: float = 0,
 ):
     """
     Simulates production and returns common stats used in Monte Carlo simulation. If demandSD > 0, then demand is assumed to follow a truncated normal distribution. Otherwise, it will follow a triangular distribution.
@@ -35,9 +35,10 @@ def simulation_production(
         demandMin (float): The minimum demand.\n
         demandMode (float): The expected demand.\n
         demandMax (float): The maximum demand.\n
+        demandSD (float): The standard deviation of demand. Defaults to 0. If demandSD == 0, then demand is assumed to follow a triangular distribution. If demandSD > 0, then demand is assumed to follow a truncated normal distribution.\n
         fixedCost (float): The total fixed costs for the production.\n
         productionQuantity (float): The production quantity.\n
-        demandSD (float, optional): The standard deviation of demand. Defaults to 0.
+
 
     Returns:\n
         simulatedProfits (list): A list of 1000 simulated profits.\n
@@ -51,11 +52,13 @@ def simulation_production(
 
     Raises:\n
         HTTPException: If the inputs do not satisfy the following conditions:
+
             demandMin <= demandMode
             demandMode <= demandMax
             demandMin < demandMax
-            productionQuantity > 0
             demandSD >= 0
+            productionQuantity > 0
+
             A 400 status code and an error message are returned in this case.
 
     """

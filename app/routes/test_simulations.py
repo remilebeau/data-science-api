@@ -14,6 +14,7 @@ def test_simulations_production_triangular():
         "demandMin": 5000,
         "demandMode": 12000,
         "demandMax": 16000,
+        "demandSD": 0,
         "fixedCost": 100000,
         "productionQuantity": 7800,
     }
