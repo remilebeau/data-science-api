@@ -25,4 +25,6 @@ def test_is_all_zero():
     assert not is_all_zero(1, 0, 0)
     assert not is_all_zero(0, 0, 1)
     assert not is_all_zero(0, 1, 0)
+    assert not is_all_zero(1, 0, 1)
+    assert not is_all_zero(0, 1, 1)
     assert not is_all_zero(1, 1, 1)
