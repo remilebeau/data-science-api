@@ -23,9 +23,10 @@ def simulation_production(
     demandMax: float,
     fixedCost: float,
     productionQuantity: float,
+    demandSD: float = 0,
 ):
     """
-    Simulates production and returns a 95% confidence interval of the expected profit, a 95% confidence interval of the probability of a negative profit, and the value at risk at the 5% level based on the simulation results. Demand follows a triangular distribution. 1000 simulations.
+    Simulates production and returns common stats used in Monte Carlo simulation. If demandSD > 0, then demand is assumed to follow a truncated normal distribution. Otherwise, it will follow a triangular distribution.
 
     Args:\n
         unitCost (float): The production cost per unit.\n
@@ -36,6 +37,7 @@ def simulation_production(
         demandMax (float): The maximum demand.\n
         fixedCost (float): The total fixed costs for the production.\n
         productionQuantity (float): The production quantity.\n
+        demandSD (float, optional): The standard deviation of demand. Defaults to 0.
 
     Returns:\n
         simulatedProfits (list): A list of 1000 simulated profits.\n
@@ -53,21 +55,41 @@ def simulation_production(
             demandMode <= demandMax
             demandMin < demandMax
             productionQuantity > 0
+            demandSD >= 0
             A 400 status code and an error message are returned in this case.
 
     """
     # validate data
-    if not (is_triangular(demandMin, demandMode, demandMax) and productionQuantity > 0):
+    if not (
+        is_triangular(demandMin, demandMode, demandMax)
+        and productionQuantity > 0
+        and demandSD >= 0
+    ):
         raise HTTPException(
             status_code=400,
-            detail="Please ensure the following: 1) demandMin <= demandMode <= demandMax 2) demandMin < demandMax 3) productionQuantity > 0",
+            detail="Please ensure the following: 1) demandMin <= demandMode <= demandMax 2) demandMin < demandMax 3) productionQuantity > 0 4) demandSD >= 0",
         )
 
     # set seed
     rng = np.random.default_rng(seed=42)
 
+    # define truncated normal function
+    def truncated_normal(min, mean, max, sd):
+        value = rng.normal(mean, sd)
+        if value < min or value > max:
+            value = truncated_normal(min, max, mean, sd)
+        return value
+
     # define demand distribution
-    demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+    # if demandSD == 0, use a triangular distribution
+    if demandSD == 0:
+        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+    # else use a truncated normal distribution
+    else:
+        demand_distribution = [
+            truncated_normal(demandMin, demandMode, demandMax, demandSD)
+            for _ in range(0, 1000)
+        ]
 
     # define simulation
     def simulation():

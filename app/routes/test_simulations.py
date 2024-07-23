@@ -5,7 +5,8 @@ from ..main import app
 client = TestClient(app)
 
 
-def test_simulations_production():
+# @desc test /api/simulations/production with triangular distribution
+def test_simulations_production_triangular():
     params = {
         "unitCost": 80,
         "unitPrice": 100,
@@ -15,6 +16,46 @@ def test_simulations_production():
         "demandMax": 16000,
         "fixedCost": 100000,
         "productionQuantity": 7800,
+    }
+    response = client.get(
+        "/api/simulations/production",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/simulations/production",
+        params=params,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    assert len(response.json()["simulatedProfits"]) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert (
+        response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
+    )
+    # check that the 1000 values are not identical
+    assert min(response.json()["simulatedProfits"]) < max(
+        response.json()["simulatedProfits"]
+    )
+    # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
+    assert (
+        response.json()["meanProfit"] >= 47000
+        and response.json()["meanProfit"] <= 49000
+    )
+
+
+# @desc test /api/simulations/production with truncated normal distribution
+def test_simulations_production_truncated_normal():
+    params = {
+        "unitCost": 80,
+        "unitPrice": 100,
+        "salvagePrice": 30,
+        "demandMin": 5000,
+        "demandMode": 12000,
+        "demandMax": 16000,
+        "fixedCost": 100000,
+        "productionQuantity": 7800,
+        "demandSD": 3496,
     }
     response = client.get(
         "/api/simulations/production",
