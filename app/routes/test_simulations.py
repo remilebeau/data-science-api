@@ -28,20 +28,16 @@ def test_simulations_production_triangular():
     # check status code
     assert response.status_code == 200
     # check that 1000 values were returned
-    assert len(response.json()["simulatedProfits"]) == 1000
+    profits = response.json()["simulatedProfits"]
+    profits_two = response_two.json()["simulatedProfits"]
+    mean_profit = response.json()["meanProfit"]
+    assert len(profits) == 1000
     # check that the 1000 values are reproducible with the same inputs
-    assert (
-        response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
-    )
+    assert profits == profits_two
     # check that the 1000 values are not identical
-    assert min(response.json()["simulatedProfits"]) < max(
-        response.json()["simulatedProfits"]
-    )
+    assert min(profits) < max(profits)
     # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
-    assert (
-        response.json()["meanProfit"] >= 47000
-        and response.json()["meanProfit"] <= 49000
-    )
+    assert 47000 <= mean_profit <= 49000
 
 
 # @desc test /api/simulations/production with truncated normal distribution
@@ -68,20 +64,16 @@ def test_simulations_production_truncated_normal():
     # check status code
     assert response.status_code == 200
     # check that 1000 values were returned
-    assert len(response.json()["simulatedProfits"]) == 1000
+    profits = response.json()["simulatedProfits"]
+    profits_two = response_two.json()["simulatedProfits"]
+    mean_profit = response.json()["meanProfit"]
+    assert len(profits) == 1000
     # check that the 1000 values are reproducible with the same inputs
-    assert (
-        response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
-    )
+    assert profits == profits_two
     # check that the 1000 values are not identical
-    assert min(response.json()["simulatedProfits"]) < max(
-        response.json()["simulatedProfits"]
-    )
+    assert min(profits) < max(profits)
     # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
-    assert (
-        response.json()["meanProfit"] >= 47000
-        and response.json()["meanProfit"] <= 49000
-    )
+    assert 47000 <= mean_profit <= 49000
 
 
 # @desc Testing /api/simulations/finance with all parameters
@@ -110,16 +102,16 @@ def test_simulations_finance_all_params():
     # check status code
     assert response.status_code == 200
     # check that 1000 values were returned
-    assert len(response.json()["simulatedNPVs"]) == 1000
+    npvs = response.json()["simulatedNPVs"]
+    npvs_two = response_two.json()["simulatedNPVs"]
+    mean_npv = response.json()["meanNPV"]
+    assert len(npvs) == 1000
     # check that the 1000 values are reproducible with the same inputs
-    assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
+    assert npvs == npvs_two
     # check that the 1000 values are not identical
-    assert min(response.json()["simulatedNPVs"]) < max(response.json()["simulatedNPVs"])
+    assert min(npvs) < max(npvs)
     # check the simulation for accuracy. The mean NPV with these inputs should be between 30,000,000 and 32,000,000
-    assert (
-        response.json()["meanNPV"] >= 30000000
-        and response.json()["meanNPV"] <= 32000000
-    )
+    assert 30000000 <= mean_npv <= 32000000
 
 
 """
@@ -166,8 +158,10 @@ def test_simulations_finance_some_params():
     # check status code
     assert response.status_code == 200
     # check that 1000 values were returned
-    assert len(response.json()["simulatedNPVs"]) == 1000
+    npvs = response.json()["simulatedNPVs"]
+    npvs_two = response_two.json()["simulatedNPVs"]
+    assert len(npvs) == 1000
     # check that the 1000 values are reproducible with the same inputs
-    assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
+    assert npvs == npvs_two
     # check that the 1000 values are not identical
-    assert min(response.json()["simulatedNPVs"]) < max(response.json()["simulatedNPVs"])
+    assert min(npvs) < max(npvs)
