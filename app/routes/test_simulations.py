@@ -32,6 +32,10 @@ def test_simulations_production():
     assert (
         response.json()["simulatedProfits"] == response_two.json()["simulatedProfits"]
     )
+    # check that the 1000 values are not identical
+    assert min(response.json()["simulatedProfits"]) < max(
+        response.json()["simulatedProfits"]
+    )
     # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
     assert (
         response.json()["meanProfit"] >= 47000
@@ -68,6 +72,8 @@ def test_simulations_finance_all_params():
     assert len(response.json()["simulatedNPVs"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["simulatedNPVs"]) < max(response.json()["simulatedNPVs"])
     # check the simulation for accuracy. The mean NPV with these inputs should be between 30,000,000 and 32,000,000
     assert (
         response.json()["meanNPV"] >= 30000000
@@ -122,3 +128,5 @@ def test_simulations_finance_some_params():
     assert len(response.json()["simulatedNPVs"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["simulatedNPVs"] == response_two.json()["simulatedNPVs"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["simulatedNPVs"]) < max(response.json()["simulatedNPVs"])

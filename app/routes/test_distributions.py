@@ -23,6 +23,8 @@ def test_distributions_triangular():
     assert len(response.json()["distValues"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["distValues"]) < max(response.json()["distValues"])
 
 
 # @desc test for uniform distribution
@@ -43,6 +45,8 @@ def test_distributions_uniform():
     assert len(response.json()["distValues"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["distValues"]) < max(response.json()["distValues"])
 
 
 # @desc test for normal distribution
@@ -68,6 +72,8 @@ def test_distributions_normal():
     assert len(response.json()["distValues"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["distValues"]) < max(response.json()["distValues"])
 
 
 # @desc test for truncated normal distribution
@@ -93,3 +99,5 @@ def test_distributions_truncated_normal():
     assert len(response.json()["distValues"]) == 1000
     # check that the 1000 values are reproducible with the same inputs
     assert response.json()["distValues"] == response_two.json()["distValues"]
+    # check that the 1000 values are not identical
+    assert min(response.json()["distValues"]) < max(response.json()["distValues"])
