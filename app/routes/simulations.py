@@ -26,7 +26,7 @@ def simulation_production(
     productionQuantity: float,
 ):
     """
-    Simulates production and returns common stats used in Monte Carlo simulation. If demandSD > 0, then demand is assumed to follow a truncated normal distribution. Otherwise, it will follow a triangular distribution.
+    Simulates production and returns common stats used in Monte Carlo simulation. The values for demandMin, demandMode, demandMax, and demandSD determine the distribution of demand.
 
     Args:\n
         unitCost (float): The production cost per unit.\n
@@ -35,7 +35,7 @@ def simulation_production(
         demandMin (float): The minimum demand.\n
         demandMode (float): The expected demand.\n
         demandMax (float): The maximum demand.\n
-        demandSD (float): The standard deviation of demand. Defaults to 0. If demandSD == 0, then demand is assumed to follow a triangular distribution. If demandSD > 0, then demand is assumed to follow a truncated normal distribution.\n
+        demandSD (float): The standard deviation of demand.\n
         fixedCost (float): The total fixed costs for the production.\n
         productionQuantity (float): The production quantity.\n
 
@@ -51,27 +51,31 @@ def simulation_production(
         valueAtRisk (float): The value at risk at the 5% level. Returns 0 if value at risk is positive.\n
 
     Raises:\n
-        HTTPException: If the inputs do not satisfy the following conditions:
+        HTTPException: If the inputs do not satisfy one of the following sets of conditions:
 
-            demandMin <= demandMode
-            demandMode <= demandMax
-            demandMin < demandMax
-            demandSD >= 0
-            productionQuantity > 0
+            triangular distribution:
+                demandMin <= demandMode <= demandMax
+                demandMin < demandMax
+                demandSD = 0
+
+            normal distribution:
+                demandMin = 0
+                demandMax = 0
+                demandSD > 0
+
+            truncated normal distribution:
+                demandMin <= demandMode <= demandMax
+                demandMin < demandMax
+                demandSD > 0
+
+            uniform distribution:
+                demandMin < demandMax
+                demandMode = 0
+                demandSD = 0
 
             A 400 status code and an error message are returned in this case.
 
     """
-    # validate data
-    if not (
-        is_triangular(demandMin, demandMode, demandMax)
-        and productionQuantity > 0
-        and demandSD >= 0
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail="Please ensure the following: 1) demandMin <= demandMode <= demandMax 2) demandMin < demandMax 3) productionQuantity > 0 4) demandSD >= 0",
-        )
 
     # set seed
     rng = np.random.default_rng(seed=42)
@@ -83,16 +87,28 @@ def simulation_production(
             value = truncated_normal(min, max, mean, sd)
         return value
 
-    # define demand distribution
-    # if demandSD == 0, use a triangular distribution
-    if demandSD == 0:
-        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
-    # else use a truncated normal distribution
-    else:
+    # define demand distribution based on provided values
+    # truncated normal distribution
+    if is_triangular(demandMin, demandMode, demandMax) and demandSD > 0:
         demand_distribution = [
             truncated_normal(demandMin, demandMode, demandMax, demandSD)
             for _ in range(0, 1000)
         ]
+    # triangular distribution
+    elif is_triangular(demandMin, demandMode, demandMax) and demandSD == 0:
+        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+    # uniform distribution
+    elif demandMode == 0 and demandSD == 0 and demandMin < demandMax:
+        demand_distribution = rng.uniform(demandMin, demandMax, 1000)
+    # normal distribution
+    elif demandMin == 0 and demandMax == 0 and demandSD > 0:
+        demand_distribution = rng.normal(demandMax, demandSD, 1000)
+    # else raise exception
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="The provided inputs must follow one of these distributions: 1) truncated normal 2) triangular 3) uniform 4) normal",
+        )
 
     # define simulation
     def simulation():
