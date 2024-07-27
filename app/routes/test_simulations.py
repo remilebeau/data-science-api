@@ -234,3 +234,63 @@ def test_simulations_finance_some_params():
     assert npvs == npvs_two
     # check that the 1000 values are not identical
     assert min(npvs) < max(npvs)
+
+    # @route GET /api/simulations/marketing
+    params = {
+        "retentionRate": 0.85,
+        "discountRate": 0.15,
+    }
+    body = {
+        "mean_profits": [
+            -40,
+            66,
+            72,
+            79,
+            87,
+            92,
+            96,
+            99,
+            103,
+            106,
+            111,
+            116,
+            120,
+            124,
+            130,
+            137,
+            142,
+            148,
+            155,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+        ]
+    }
+    response = client.post(
+        "/api/simulations/marketing",
+        params=params,
+        json=body,
+    )
+    response_two = client.post(
+        "/api/simulations/marketing",
+        params=params,
+        json=body,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    npvs = response.json()["simulatedNPVs"]
+    npvs_two = response_two.json()["simulatedNPVs"]
+    assert len(npvs) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert npvs == npvs_two
+    # check that the 1000 values are not identical
+    assert min(npvs) < max(npvs)

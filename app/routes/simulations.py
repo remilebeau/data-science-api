@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 import numpy as np
 import numpy_financial as npf
 from ..utils.utils import is_triangular, is_percent, is_all_zero, generate_stats
@@ -8,6 +9,10 @@ router = APIRouter(
     tags=["simulations"],
     responses={404: {"description": "Not found"}},
 )
+
+
+class MeanProfits(BaseModel):
+    mean_profits: list[float]
 
 
 # @desc Monte Carlo simulation for production planning. If demandSD == 0, demand follows a triangular distribution. If demandSD > 0, demand follows a truncated normal distribution. n = 1000. α = 0.05
@@ -134,7 +139,7 @@ def simulation_production(
         p_lose_money_lower_ci,
         p_lose_money_upper_ci,
         value_at_risk,
-    ) = generate_stats(simulated_profits)
+    ) = generate_stats(simulated_profits).values()
 
     return {
         "simulatedProfits": simulated_profits,
@@ -302,7 +307,87 @@ def simulation_finance(
         p_lose_money_lower_ci,
         p_lose_money_upper_ci,
         value_at_risk,
-    ) = generate_stats(simulated_profits)
+    ) = generate_stats(simulated_profits).values()
+
+    return {
+        "simulatedNPVs": simulated_profits,
+        "meanNPV": mean_npv,
+        "meanStandardError": mean_std_error,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
+        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+        "valueAtRisk": value_at_risk,
+    }
+
+
+# @desc Monte Carlo simulation for marketing
+# @route POST /api/simulations/marketing
+# @access public
+@router.post("/marketing")
+def simulation_marketing(
+    retentionRate: float,
+    discountRate: float,
+    meanProfits: MeanProfits,
+):
+    # validate data
+    # retentionRate must be a percentage
+    if not is_percent(retentionRate):
+        raise HTTPException(
+            status_code=400,
+            detail="retentionRate must be between 0 and 1.",
+        )
+    # discountRate must be a percentage
+    if not is_percent(discountRate):
+        raise HTTPException(
+            status_code=400,
+            detail="discountRate must be between 0 and 1.",
+        )
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    # define simulation
+    def profit_simulation():
+        customer_years = 0
+        customer_profit = []
+        is_customer = True
+
+        while is_customer and customer_years < len(meanProfits.mean_profits):
+            if rng.random() > retentionRate:
+                is_customer = False
+                mean_profit_this_year = meanProfits.mean_profits[customer_years]
+                sd = 0.1 * abs(mean_profit_this_year)
+                customer_profit.append(rng.normal(mean_profit_this_year, sd))
+            else:
+                mean_profit_this_year = meanProfits.mean_profits[customer_years]
+                sd = 0.1 * abs(mean_profit_this_year)
+                customer_profit.append(rng.normal(mean_profit_this_year, sd))
+                customer_years += 1
+        customer_profit.insert(0, 0)
+        npv = npf.npv((discountRate), customer_profit)
+        return npv
+
+    # define years loyal simulation
+    def years_loyal_simulation():
+        years_loyal = 0
+        while rng.random() < retentionRate:
+            years_loyal += 1
+        return years_loyal
+
+    # run simulation
+    simulated_profits = [profit_simulation() for _ in range(1000)]
+    years_loyal = [years_loyal_simulation() for _ in range(1000)]
+
+    # generate stats
+    (
+        mean_npv,
+        mean_std_error,
+        mean_lower_ci,
+        mean_upper_ci,
+        p_lose_money_lower_ci,
+        p_lose_money_upper_ci,
+        value_at_risk,
+    ) = generate_stats(simulated_profits).values()
 
     return {
         "simulatedNPVs": simulated_profits,

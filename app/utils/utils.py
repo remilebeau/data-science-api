@@ -15,7 +15,7 @@ def is_all_zero(*args):
 
 # @desc returns mean, mean standard error, 95% confidence interval for mean, 95% confidence interval for the probability of negative profit, and value at risk at the 5% level
 # @param values: list of profit values
-def generate_stats(values: list[float]):
+def generate_stats(values: list[float]) -> dict[str, float]:
     mean = np.mean(values)
     standard_error = np.std(values) / np.sqrt(len(values))
     lower_ci = mean - 1.96 * standard_error
@@ -28,12 +28,12 @@ def generate_stats(values: list[float]):
         p_lose_money * (1 - p_lose_money) / len(values)
     )
     value_at_risk = min(np.percentile(values, 5), 0)
-    return (
-        mean,
-        standard_error,
-        lower_ci,
-        upper_ci,
-        p_lose_money_lower_ci,
-        p_lose_money_upper_ci,
-        value_at_risk,
-    )
+    return {
+        "mean": mean,
+        "standard_error": standard_error,
+        "lower_ci": lower_ci,
+        "upper_ci": upper_ci,
+        "p_lose_money_lower_ci": p_lose_money_lower_ci,
+        "p_lose_money_upper_ci": p_lose_money_upper_ci,
+        "value_at_risk": value_at_risk,
+    }
