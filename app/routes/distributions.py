@@ -27,8 +27,7 @@ def distribution_triangular(distMin: float, distMode: float, distMax: float):
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            distMin <= distMode
-            distMode <= distMax
+            distMin <= distMode <= distMax
             distMin < distMax
             A 400 status code and an error message are returned in this case.
     """
@@ -95,14 +94,14 @@ def distribution_normal(distMean: float, distSD: float):
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
-            distSD >= 0
+            distSD > 0
             A 400 status code and an error message are returned in this case.
     """
     # validate data
-    if distSD < 0:
+    if distSD <= 0:
         raise HTTPException(
             status_code=400,
-            detail="Please ensure the following: distSD >= 0",
+            detail="Please ensure the following: distSD > 0",
         )
 
     # set seed
@@ -138,14 +137,14 @@ def distribution_truncated_normal(
             distMin <= distMean
             distMean <= distMax
             distMin < distMax
-            distSD >= 0
+            distSD > 0
             A 400 status code and an error message are returned in this case.
     """
     # validate data
-    if not is_triangular(distMin, distMean, distMax) or distSD < 0:
+    if not is_triangular(distMin, distMean, distMax) or distSD <= 0:
         raise HTTPException(
             status_code=400,
-            detail="Please ensure the following: 1) distMin <= distMean <= distMax 2) distMin < distMax 3) distSD >= 0",
+            detail="Please ensure the following: 1) distMin <= distMean <= distMax 2) distMin < distMax 3) distSD > 0",
         )
 
     # set seed
