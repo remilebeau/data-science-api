@@ -239,3 +239,123 @@ def test_simulations_finance_some_params():
     assert npvs == npvs_two
     # check that the 1000 values are not identical
     assert min(npvs) < max(npvs)
+
+
+# @desc Test cash flow simulation with triangular distribution
+# @route GET /api/simulations/cash_flow
+def test_simulations_cash_flow():
+    params = {
+        "periodsPerYear": 12,
+        "min": 5000,
+        "mean": 12000,
+        "max": 16000,
+        "sd": 0,
+    }
+    response = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    annual_cash_flows = response.json()["annualCashFlows"]
+    annual_cash_flows_two = response_two.json()["annualCashFlows"]
+    assert len(annual_cash_flows) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert annual_cash_flows == annual_cash_flows_two
+    # check that the 1000 values are not identical
+    assert min(annual_cash_flows) < max(annual_cash_flows)
+
+
+# @desc Test cash flow simulation with truncated normal distribution
+# @route GET /api/simulations/cash_flow
+def test_simulations_cash_flow():
+    params = {
+        "periodsPerYear": 12,
+        "min": 5000,
+        "mean": 12000,
+        "max": 16000,
+        "sd": 3496,
+    }
+    response = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    annual_cash_flows = response.json()["annualCashFlows"]
+    annual_cash_flows_two = response_two.json()["annualCashFlows"]
+    assert len(annual_cash_flows) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert annual_cash_flows == annual_cash_flows_two
+    # check that the 1000 values are not identical
+    assert min(annual_cash_flows) < max(annual_cash_flows)
+
+
+# @desc Test cash flow simulation with uniform distribution
+# @route GET /api/simulations/cash_flow
+def test_simulations_cash_flow():
+    params = {
+        "periodsPerYear": 12,
+        "min": 5000,
+        "mean": 0,
+        "max": 16000,
+        "sd": 0,
+    }
+    response = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    annual_cash_flows = response.json()["annualCashFlows"]
+    annual_cash_flows_two = response_two.json()["annualCashFlows"]
+    assert len(annual_cash_flows) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert annual_cash_flows == annual_cash_flows_two
+    # check that the 1000 values are not identical
+    assert min(annual_cash_flows) < max(annual_cash_flows)
+
+
+# @desc Test cash flow simulation with normal distribution
+# @route GET /api/simulations/cash_flow
+def test_simulations_cash_flow():
+    params = {
+        "periodsPerYear": 12,
+        "min": 0,
+        "mean": 12000,
+        "max": 0,
+        "sd": 3496,
+    }
+    response = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    response_two = client.get(
+        "/api/simulations/cash_flow",
+        params=params,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that 1000 values were returned
+    annual_cash_flows = response.json()["annualCashFlows"]
+    annual_cash_flows_two = response_two.json()["annualCashFlows"]
+    assert len(annual_cash_flows) == 1000
+    # check that the 1000 values are reproducible with the same inputs
+    assert annual_cash_flows == annual_cash_flows_two
+    # check that the 1000 values are not identical
+    assert min(annual_cash_flows) < max(annual_cash_flows)
