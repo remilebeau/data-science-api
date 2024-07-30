@@ -86,7 +86,7 @@ def simulation_production(
     rng = np.random.default_rng(seed=42)
 
     # define truncated normal function
-    def truncated_normal(min, mean, max, sd):
+    def truncated_normal(min: float, mean: float, max: float, sd: float) -> float:
         value = rng.normal(mean, sd)
         if value < min or value > max:
             value = truncated_normal(min, max, mean, sd)
@@ -319,3 +319,56 @@ def simulation_finance(
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
     }
+
+
+# @desc Monte Carlo simulation for cash flow
+# @route GET /api/simulations/cash_flow
+# @access public
+@router.get("/cash_flow")
+def simulation_cash_flow(
+    periodsPerYear: int, min: float, mean: float, max: float, sd: float
+):
+    # validate data
+    if periodsPerYear <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="periodsPerYear must be greater than 0.",
+        )
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    # define truncated normal function
+    def truncated_normal(min: float, mean: float, max: float, sd: float) -> float:
+        value = rng.normal(mean, sd)
+        if value < min or value > max:
+            value = truncated_normal(min, max, mean, sd)
+        return value
+
+    # determine distribution
+    # triangular
+    if is_triangular(min, mean, max) and sd == 0:
+        distribution = rng.triangular(min, mean, max, 1000).tolist()
+    # truncated normal
+    elif is_triangular(min, mean, max) and sd > 0:
+        distribution = [truncated_normal(min, mean, max, sd) for _ in range(0, 1000)]
+    # uniform
+    elif mean == 0 and sd == 0 and min < max:
+        distribution = rng.uniform(min, max, 1000).tolist()
+    # normal
+    elif min == 0 and max == 0 and sd > 0:
+        distribution = rng.normal(mean, sd, 1000).tolist()
+    # else raise exception
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail="Cash flows must follow one of the following distributions: triangular, truncated normal, uniform, or normal.",
+        )
+
+    # define simulation
+    def simulation():
+        return rng.choice(distribution, periodsPerYear).sum()
+
+    # run simulation
+    annual_cash_flows = [simulation() for _ in range(1000)]
+
+    return {"annualCashFlows": annual_cash_flows}
