@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 class MeanProfits(BaseModel):
-    mean_profits: list[float]
+    meanProfits: list[float]
 
 
 # @desc Monte Carlo simulation for production planning. If demandSD == 0, demand follows a triangular distribution. If demandSD > 0, demand follows a truncated normal distribution. n = 1000. α = 0.05
@@ -328,8 +328,34 @@ def simulation_finance(
 def simulation_marketing(
     retentionRate: float,
     discountRate: float,
+    stDev: float,
     meanProfits: MeanProfits,
 ):
+    """
+    Monte Carlo simulation in a marketing context.\n
+    Args:\n
+        retentionRate: customer retention rate
+        discountRate: discount rate
+        stDev: standard deviation as a percentage of the mean
+        meanProfits: a list of mean profits by year
+
+    Returns:\n
+        simulatedNPVs: simulated NPVs
+        meanNPV: mean NPV
+        meanStandardError: mean standard error
+        meanLowerCI: mean lower confidence interval
+        meanUpperCI: mean upper confidence interval
+        pLoseMoneyLowerCI: probability of losing money lower confidence interval
+        pLoseMoneyUpperCI: probability of losing money upper confidence interval
+        valueAtRisk: value at risk
+        avgYearsLoyal: average years loyal
+
+    Raises:\n
+        HTTPException: If the input values do not satisfy the following conditions:
+            retentionRate must be between 0 and 1
+            discountRate must be between 0 and 1
+            stDev must be between 0 and 1
+    """
     # validate data
     # retentionRate must be a percentage
     if not is_percent(retentionRate):
@@ -343,6 +369,12 @@ def simulation_marketing(
             status_code=400,
             detail="discountRate must be between 0 and 1.",
         )
+    # stDev must be a percentage (of the mean)
+    if not is_percent(stDev):
+        raise HTTPException(
+            status_code=400,
+            detail="stDev must be between 0 and 1.",
+        )
     # set seed
     rng = np.random.default_rng(seed=42)
 
@@ -352,15 +384,15 @@ def simulation_marketing(
         customer_profit = []
         is_customer = True
 
-        while is_customer and customer_years < len(meanProfits.mean_profits):
+        while is_customer and customer_years < len(meanProfits.meanProfits):
             if rng.random() > retentionRate:
                 is_customer = False
-                mean_profit_this_year = meanProfits.mean_profits[customer_years]
-                sd = 0.1 * abs(mean_profit_this_year)
+                mean_profit_this_year = meanProfits.meanProfits[customer_years]
+                sd = stDev * abs(mean_profit_this_year)
                 customer_profit.append(rng.normal(mean_profit_this_year, sd))
             else:
-                mean_profit_this_year = meanProfits.mean_profits[customer_years]
-                sd = 0.1 * abs(mean_profit_this_year)
+                mean_profit_this_year = meanProfits.meanProfits[customer_years]
+                sd = stDev * abs(mean_profit_this_year)
                 customer_profit.append(rng.normal(mean_profit_this_year, sd))
                 customer_years += 1
         customer_profit.insert(0, 0)
@@ -388,6 +420,7 @@ def simulation_marketing(
         p_lose_money_upper_ci,
         value_at_risk,
     ) = generate_stats(simulated_profits).values()
+    avg_years_loyal = np.mean(years_loyal)
 
     return {
         "simulatedNPVs": simulated_profits,
@@ -398,4 +431,5 @@ def simulation_marketing(
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
+        "avgYearsLoyal": avg_years_loyal,
     }

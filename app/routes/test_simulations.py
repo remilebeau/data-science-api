@@ -5,7 +5,8 @@ from ..main import app
 client = TestClient(app)
 
 
-# @desc test /api/simulations/production with triangular distribution
+# @desc Test production simulation with triangular distribution
+# @route GET /api/simulations/production
 def test_simulations_production_triangular():
     params = {
         "unitCost": 80,
@@ -41,7 +42,8 @@ def test_simulations_production_triangular():
     assert 47000 <= mean_profit <= 49000
 
 
-# @desc test /api/simulations/production with truncated normal distribution
+# @desc Test production simulation with truncated normal distribution
+# @route GET /api/simulations/production
 def test_simulations_production_truncated_normal():
     params = {
         "unitCost": 80,
@@ -77,7 +79,8 @@ def test_simulations_production_truncated_normal():
     assert 47000 <= mean_profit <= 49000
 
 
-# @desc test /api/simulations/production with normal distribution
+# @desc Test production simulation with normal distribution
+# @route GET /api/simulations/production
 def test_simulations_production_normal():
     params = {
         "unitCost": 80,
@@ -111,7 +114,8 @@ def test_simulations_production_normal():
     assert min(profits) < max(profits)
 
 
-# @desc test /api/simulations/production with uniform distribution
+# @desc Test production simulation with uniform distribution
+# @route GET /api/simulations/production
 def test_simulations_production_uniform():
     params = {
         "unitCost": 80,
@@ -145,7 +149,8 @@ def test_simulations_production_uniform():
     assert min(profits) < max(profits)
 
 
-# @desc Testing /api/simulations/finance with all parameters
+# @desc Test finance simulation with all parameters
+# @route GET /api/simulations/finance
 def test_simulations_finance_all_params():
     params = {
         "fixedCost": 700000000,
@@ -235,54 +240,58 @@ def test_simulations_finance_some_params():
     # check that the 1000 values are not identical
     assert min(npvs) < max(npvs)
 
-    # @route GET /api/simulations/marketing
+
+# @route GET /api/simulations/marketing
+def test_simulations_marketing():
+
     params = {
         "retentionRate": 0.85,
         "discountRate": 0.15,
+        "stDev": 0.1,
     }
-    body = {
-        "mean_profits": [
-            -40,
-            66,
-            72,
-            79,
-            87,
-            92,
-            96,
-            99,
-            103,
-            106,
-            111,
-            116,
-            120,
-            124,
-            130,
-            137,
-            142,
-            148,
-            155,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-        ]
-    }
+    mean_profits = [
+        -40,
+        66,
+        72,
+        79,
+        87,
+        92,
+        96,
+        99,
+        103,
+        106,
+        111,
+        116,
+        120,
+        124,
+        130,
+        137,
+        142,
+        148,
+        155,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+        161,
+    ]
     response = client.post(
         "/api/simulations/marketing",
         params=params,
-        json=body,
+        json={"meanProfits": mean_profits},
+        headers={"Content-Type": "application/json"},
     )
     response_two = client.post(
         "/api/simulations/marketing",
         params=params,
-        json=body,
+        json={"meanProfits": mean_profits},
+        headers={"Content-Type": "application/json"},
     )
     # check status code
     assert response.status_code == 200
@@ -294,3 +303,8 @@ def test_simulations_finance_some_params():
     assert npvs == npvs_two
     # check that the 1000 values are not identical
     assert min(npvs) < max(npvs)
+    # check for accuracy. these inputs should yield a mean NPV between 150 and 180. and average years loyal between 5 and 7
+    mean_npv = response.json()["meanNPV"]
+    avg_years_loyal = response.json()["avgYearsLoyal"]
+    assert 150 <= mean_npv <= 180
+    assert 5 <= avg_years_loyal <= 7
