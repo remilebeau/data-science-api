@@ -326,13 +326,19 @@ def simulation_finance(
 # @access public
 @router.get("/cash_flow")
 def simulation_cash_flow(
-    periodsPerYear: int, min: float, mean: float, max: float, sd: float
+    periodsPerYear: int,
+    fixedCost: float,
+    min: float,
+    mean: float,
+    max: float,
+    sd: float,
 ):
     """
     Monte Carlo simulation for annual cash flow. The arguments provided determine the distribution of periodic cash flows. Periodic cash flow can follow a triangular, truncated normal, uniform, or normal distribution.\n
 
     Args:\n
         periodsPerYear (int): The number of periods per year.\n
+        fixedCost (float): The total annual fixed costs.\n
         min (float): The minimum periodic cash flow.\n
         mean (float): The mean periodic cash flow.\n
         max (float): The maximum periodic cash flow.\n
@@ -406,7 +412,7 @@ def simulation_cash_flow(
 
     # define simulation
     def simulation():
-        return rng.choice(distribution, periodsPerYear).sum()
+        return rng.choice(distribution, periodsPerYear).sum() - fixedCost
 
     # run simulation
     annual_cash_flows = [simulation() for _ in range(1000)]

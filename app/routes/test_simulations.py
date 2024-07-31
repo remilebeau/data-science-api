@@ -188,24 +188,7 @@ def test_simulations_finance_all_params():
     assert 30000000 <= mean_npv <= 32000000
 
 
-"""
-Testing /api/simulations/finance with only these parameters:
-    fixedCost
-    yearOneMargin
-    yearOneSalesMin
-    yearOneSalesMode
-    yearOneSalesMax
-
-The remaining parameters will be set to 0:
-    annualMarginDecrease
-    annualSalesDecayMin
-    annualSalesDecayMode
-    annualSalesDecayMax
-    taxRate
-    discountRate
-"""
-
-
+# @desc Test finance simulation with some parameters
 # @route GET /api/simulations/finance
 def test_simulations_finance_some_params():
     params = {
@@ -246,6 +229,7 @@ def test_simulations_finance_some_params():
 def test_simulations_cash_flow():
     params = {
         "periodsPerYear": 12,
+        "fixedCost": 100000,
         "min": 5000,
         "mean": 12000,
         "max": 16000,
@@ -276,6 +260,7 @@ def test_simulations_cash_flow():
 def test_simulations_cash_flow():
     params = {
         "periodsPerYear": 12,
+        "fixedCost": 100000,
         "min": 5000,
         "mean": 12000,
         "max": 16000,
@@ -306,6 +291,7 @@ def test_simulations_cash_flow():
 def test_simulations_cash_flow():
     params = {
         "periodsPerYear": 12,
+        "fixedCost": 100000,
         "min": 5000,
         "mean": 0,
         "max": 16000,
@@ -336,6 +322,7 @@ def test_simulations_cash_flow():
 def test_simulations_cash_flow():
     params = {
         "periodsPerYear": 12,
+        "fixedCost": 100000,
         "min": 0,
         "mean": 12000,
         "max": 0,
