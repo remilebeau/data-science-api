@@ -343,7 +343,28 @@ def simulation_cash_flow(
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
+
             periodsPerYear > 0
+
+            triangular distribution:
+                min <= mean <= max
+                min < max
+                sd = 0
+
+            normal distribution:
+                min = 0
+                max = 0
+                sd > 0
+
+            truncated normal distribution:
+                min <= mean <= max
+                min < max
+                sd > 0
+
+            uniform distribution:
+                min < max
+                mean = 0
+                sd = 0
             A 400 status code and an error message are returned in this case.
 
     """
