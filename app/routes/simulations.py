@@ -417,4 +417,24 @@ def simulation_cash_flow(
     # run simulation
     annual_cash_flows = [simulation() for _ in range(1000)]
 
-    return {"annualCashFlows": annual_cash_flows}
+    # generate stats
+    (
+        mean_profit,
+        mean_std_error,
+        mean_lower_ci,
+        mean_upper_ci,
+        p_lose_money_lower_ci,
+        p_lose_money_upper_ci,
+        value_at_risk,
+    ) = generate_stats(annual_cash_flows)
+
+    return {
+        "annualCashFlows": annual_cash_flows,
+        "meanProfit": mean_profit,
+        "meanStandardError": mean_std_error,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
+        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+        "valueAtRisk": value_at_risk,
+    }

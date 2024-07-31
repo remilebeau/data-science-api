@@ -226,7 +226,7 @@ def test_simulations_finance_some_params():
 
 # @desc Test cash flow simulation with triangular distribution
 # @route GET /api/simulations/cash_flow
-def test_simulations_cash_flow():
+def test_simulations_cash_flow_triangular():
     params = {
         "periodsPerYear": 12,
         "fixedCost": 100000,
@@ -257,7 +257,7 @@ def test_simulations_cash_flow():
 
 # @desc Test cash flow simulation with truncated normal distribution
 # @route GET /api/simulations/cash_flow
-def test_simulations_cash_flow():
+def test_simulations_cash_flow_truncated_normal():
     params = {
         "periodsPerYear": 12,
         "fixedCost": 100000,
@@ -288,7 +288,7 @@ def test_simulations_cash_flow():
 
 # @desc Test cash flow simulation with uniform distribution
 # @route GET /api/simulations/cash_flow
-def test_simulations_cash_flow():
+def test_simulations_cash_flow_uniform():
     params = {
         "periodsPerYear": 12,
         "fixedCost": 100000,
@@ -319,7 +319,7 @@ def test_simulations_cash_flow():
 
 # @desc Test cash flow simulation with normal distribution
 # @route GET /api/simulations/cash_flow
-def test_simulations_cash_flow():
+def test_simulations_cash_flow_normal():
     params = {
         "periodsPerYear": 12,
         "fixedCost": 100000,
