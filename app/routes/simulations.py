@@ -15,7 +15,7 @@ class MeanProfits(BaseModel):
     meanProfits: list[float]
 
 
-# @desc Monte Carlo simulation for production planning. If demandSD == 0, demand follows a triangular distribution. If demandSD > 0, demand follows a truncated normal distribution. n = 1000. α = 0.05
+# @desc Monte Carlo simulation for production planning
 # @route GET /api/simulations/production
 # @access public
 @router.get("/production")
@@ -153,7 +153,7 @@ def simulation_production(
     }
 
 
-# @desc Monte Carlo simulation for financial planning. Triangular distribution. n = 1000. α = 0.05. Planning horizon = 5 years
+# @desc Monte Carlo simulation for financial planning
 # @route GET /api/simulations/finance
 # @access public
 @router.get("/finance")
@@ -328,6 +328,25 @@ def simulation_finance(
 def simulation_cash_flow(
     periodsPerYear: int, min: float, mean: float, max: float, sd: float
 ):
+    """
+    Monte Carlo simulation for annual cash flow. The arguments provided determine the distribution of periodic cash flows. Periodic cash flow can follow a triangular, truncated normal, uniform, or normal distribution.\n
+
+    Args:\n
+        periodsPerYear (int): The number of periods per year.\n
+        min (float): The minimum periodic cash flow.\n
+        mean (float): The mean periodic cash flow.\n
+        max (float): The maximum periodic cash flow.\n
+        sd (float): The standard deviation of periodic cash flows.\n
+
+    Returns:\n
+        annualCashFlows (list): A list of annualized cash flows.\n
+
+    Raises:\n
+        HTTPException: If the input values do not satisfy the following conditions:
+            periodsPerYear > 0
+            A 400 status code and an error message are returned in this case.
+
+    """
     # validate data
     if periodsPerYear <= 0:
         raise HTTPException(
