@@ -426,7 +426,7 @@ def simulation_cash_flow(
         p_lose_money_lower_ci,
         p_lose_money_upper_ci,
         value_at_risk,
-    ) = generate_stats(annual_cash_flows)
+    ) = generate_stats(annual_cash_flows).values()
 
     return {
         "annualCashFlows": annual_cash_flows,
