@@ -31,7 +31,7 @@ def simulation_production(
     productionQuantity: float,
 ):
     """
-    Simulates production and returns common stats used in Monte Carlo simulation. The values for demandMin, demandMode, demandMax, and demandSD determine the distribution of demand.
+    Simulates production and returns expected profit, the probability of losing money, and the 5% value at risk. Demand can follow a triangular, truncated normal, uniform, or normal distribution. α = 0.05. n = 1000.
 
     Args:\n
         unitCost (float): The production cost per unit.\n
@@ -171,39 +171,39 @@ def simulation_finance(
     discountRate: float,
 ):
     """
-    Simulates a financial project and returns a 95% confidence interval of the expected NPV, a 95% confidence interval of the probability of a negative NPV, and the value at risk at the 5% level based on the simulation results. Planning horizon = 5 years. Sales and sales decay follow a triangular distribution. 1000 simulations.
+    Simulates a financial project and returns expected profit, the probability of losing money, and the 5% value at risk. Demand follows a triangular distribution. α = 0.05. n = 1000.
 
-    Args:\n
-        fixedCost (float): The total fixed cost of the project.\n
-        yearOneMargin (float): Margin in year 1.\n
-        yearOneSalesMin (float): Minimum sales in year 1.\n
-        yearOneSalesMode (float): Expected sales in year 1.\n
-        yearOneSalesMax (float): Maximum sales in year 1.\n
-        annualMarginDecrease (float): The annual margin decrease in years 2 to 5. Does not change from year to year. Set to 0 to remove from model.\n
-        annualSalesDecayMin (float): The minimum annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
-        annualSalesDecayMode (float): The expected annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
-        annualSalesDecayMax (float): The maximum annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
-        taxRate (float): The tax rate. Set to 0 to remove from model.\n
-        discountRate (float): The discount rate. Set to 0 to remove from model.\n
+       Args:\n
+           fixedCost (float): The total fixed cost of the project.\n
+           yearOneMargin (float): Margin in year 1.\n
+           yearOneSalesMin (float): Minimum sales in year 1.\n
+           yearOneSalesMode (float): Expected sales in year 1.\n
+           yearOneSalesMax (float): Maximum sales in year 1.\n
+           annualMarginDecrease (float): The annual margin decrease in years 2 to 5. Does not change from year to year. Set to 0 to remove from model.\n
+           annualSalesDecayMin (float): The minimum annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
+           annualSalesDecayMode (float): The expected annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
+           annualSalesDecayMax (float): The maximum annual sales decay in years 2 to 5. Set annualSalesDecayMin, annualSalesDecayMode, and annualSalesDecayMax all to 0 remove from model.\n
+           taxRate (float): The tax rate. Set to 0 to remove from model.\n
+           discountRate (float): The discount rate. Set to 0 to remove from model.\n
 
-    Returns:\n
-        simulatedNPVs (list): A list of simulated NPVs
-        meanNPV (float): The mean NPV
-        meanStandardError (float): The standard error of the mean NPV
-        meanLowerCI (float): The lower 95% confidence interval of the mean NPV
-        meanUpperCI (float): The upper 95% confidence interval of the mean NPV
-        pLoseMoneyLowerCI (float): The lower 95% confidence interval of the probability of losing money
-        pLoseMoneyUpperCI (float): The upper 95% confidence interval of the probability of losing money
-        valueAtRisk (float): The value at risk at the 5% level. Returns 0 if value at risk is positive.
+       Returns:\n
+           simulatedNPVs (list): A list of simulated NPVs
+           meanNPV (float): The mean NPV
+           meanStandardError (float): The standard error of the mean NPV
+           meanLowerCI (float): The lower 95% confidence interval of the mean NPV
+           meanUpperCI (float): The upper 95% confidence interval of the mean NPV
+           pLoseMoneyLowerCI (float): The lower 95% confidence interval of the probability of losing money
+           pLoseMoneyUpperCI (float): The upper 95% confidence interval of the probability of losing money
+           valueAtRisk (float): The value at risk at the 5% level. Returns 0 if value at risk is positive.
 
-    Raises:\n
-        HTTPException: If the input values do not satisfy the following conditions:
-            yearOneSales must fit a triangular distribution
-            annualMarginDecrease must be between 0 and 1
-            annualSalesDecay must be all 0 or fit a triangular distribution
-            taxRate must be between 0 and 1
-            discountRate must be between 0 and 1
-            A 400 status code and an error message are returned in this case.
+       Raises:\n
+           HTTPException: If the input values do not satisfy the following conditions:
+               yearOneSales must fit a triangular distribution
+               annualMarginDecrease must be between 0 and 1
+               annualSalesDecay must be all 0 or fit a triangular distribution
+               taxRate must be between 0 and 1
+               discountRate must be between 0 and 1
+               A 400 status code and an error message are returned in this case.
     """
     # validate data
     # yearOneSales must fit a triangular distribution
@@ -334,7 +334,7 @@ def simulation_cash_flow(
     sd: float,
 ):
     """
-    Monte Carlo simulation for annual cash flow. The arguments provided determine the distribution of periodic cash flows. Periodic cash flow can follow a triangular, truncated normal, uniform, or normal distribution.\n
+    Monte Carlo simulation for annual cash flow. Periodic cash flow can follow a triangular, truncated normal, uniform, or normal distribution. n = 1000.\n
 
     Args:\n
         periodsPerYear (int): The number of periods per year.\n
@@ -346,6 +346,13 @@ def simulation_cash_flow(
 
     Returns:\n
         annualCashFlows (list): A list of annualized cash flows.\n
+        meanProfit (float): The expected annual cash flow.\n
+        meanStandardError (float): The standard error expected annual cash flow.\n
+        meanLowerCI (float): The lower 95% confidence interval expected annual cash flow.\n
+        meanUpperCI (float): The upper 95% confidence interval expected annual cash flow.\n
+        pLoseMoneyLowerCI (float): The lower 95% confidence interval for the  probability of losing money.\n
+        pLoseMoneyUpperCI (float): The upper confidence interval for the probability of losing money.\n
+        valueAtRisk (float): The value at risk at the 5% level. Returns 0 if value at risk is positive.
 
     Raises:\n
         HTTPException: If the input values do not satisfy the following conditions:
