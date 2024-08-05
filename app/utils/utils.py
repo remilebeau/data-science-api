@@ -19,7 +19,7 @@ def is_truncated_normal(min: float, mean: float, max: float, sd: float):
 
 def determine_distribution(
     min: float = 0, mean: float = 0, max: float = 0, sd: float = 0
-):
+) -> str:
     if is_triangular(min, mean, max, sd):
         return "triangular"
     elif is_normal(mean, sd, min, max):
