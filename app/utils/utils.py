@@ -17,6 +17,21 @@ def is_truncated_normal(min: float, mean: float, max: float, sd: float):
     return (min <= mean <= max) and min < max and sd > 0
 
 
+def determine_distribution(
+    min: float = 0, mean: float = 0, max: float = 0, sd: float = 0
+):
+    if is_triangular(min, mean, max, sd):
+        return "triangular"
+    elif is_normal(mean, sd, min, max):
+        return "normal"
+    elif is_uniform(min, max, mean, sd):
+        return "uniform"
+    elif is_truncated_normal(min, mean, max, sd):
+        return "truncated normal"
+    else:
+        return "unknown"
+
+
 def is_percent(num: float):
     return 0 <= num <= 1
 

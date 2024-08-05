@@ -8,6 +8,11 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+# @desc returns 1000 random values
+# @route GET /api/distributions/random
+# @access public
+@router.get("/random")
+def distribution_random(min:float=0,max:float=0,mean:float=0,sd:float=0):
 
 # @desc returns 1000 random values from a triangular distribution
 # @route GET /api/distributions/triangular
