@@ -16,11 +16,11 @@ router = APIRouter(
 )
 
 
-# @desc returns 1000 random values
+# @desc returns 1000 pseudorandom values
 # @route GET /api/simulations/random_values
 # @access public
 @router.get("/random_values")
-def distribution_random_values(
+def simulation_random_values(
     min: float = 0, mean: float = 0, max: float = 0, sd: float = 0
 ):
     """
