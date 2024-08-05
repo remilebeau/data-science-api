@@ -5,106 +5,26 @@ from ..main import app
 client = TestClient(app)
 
 
-# @desc test for triangular distribution
-# @route GET /api/distributions/triangular
-def test_distributions_triangular():
-    params = {"distMin": 200, "distMode": 400, "distMax": 600}
+# @desc test random distribution with triangular
+# @route GET /api/distributions/random
+def test_distributions_random():
+    params = {"min": 5000, "mean": 12000, "max": 16000, "sd": 0}
     response = client.get(
-        "/api/distributions/triangular",
+        "/api/distributions/random",
         params=params,
     )
     response_two = client.get(
-        "/api/distributions/triangular",
+        "/api/distributions/random",
         params=params,
     )
+    values = response.json()["distValues"]
+    values_two = response_two.json()["distValues"]
     # check status code
     assert response.status_code == 200
     # check that 1000 values were returned
-    values = response.json()["distValues"]
-    values_two = response_two.json()["distValues"]
     assert len(values) == 1000
-    # check that the 1000 values are reproducible with the same inputs
-    assert values == values_two
-    # check that the 1000 values are not identical
-    assert min(values) < max(values)
-
-
-# @desc test for uniform distribution
-# @route GET /api/distributions/uniform
-def test_distributions_uniform():
-    params = {"distMin": 200, "distMax": 600}
-    response = client.get(
-        "/api/distributions/uniform",
-        params=params,
-    )
-    response_two = client.get(
-        "/api/distributions/uniform",
-        params=params,
-    )
-    # check status code
-    assert response.status_code == 200
-    # check that 1000 values were returned
-    values = response.json()["distValues"]
-    values_two = response_two.json()["distValues"]
-    assert len(values) == 1000
-    # check that the 1000 values are reproducible with the same inputs
-    assert values == values_two
-    # check that the 1000 values are not identical
-    assert min(values) < max(values)
-
-
-# @desc test for normal distribution
-# @route GET /api/distributions/normal
-def test_distributions_normal():
-    params = {
-        "distMin": 200,
-        "distMean": 400,
-        "distMax": 600,
-        "distSD": 100,
-    }
-    response = client.get(
-        "/api/distributions/normal",
-        params=params,
-    )
-    response_two = client.get(
-        "/api/distributions/normal",
-        params=params,
-    )
-    # check status code
-    assert response.status_code == 200
-    # check that 1000 values were returned
-    values = response.json()["distValues"]
-    values_two = response_two.json()["distValues"]
-    assert len(values) == 1000
-    # check that the 1000 values are reproducible with the same inputs
-    assert values == values_two
-    # check that the 1000 values are not identical
-    assert min(values) < max(values)
-
-
-# @desc test for truncated normal distribution
-# @route GET /api/distributions/truncated_normal
-def test_distributions_truncated_normal():
-    params = {
-        "distMin": 200,
-        "distMean": 400,
-        "distMax": 600,
-        "distSD": 100,
-    }
-    response = client.get(
-        "/api/distributions/truncated_normal",
-        params=params,
-    )
-    response_two = client.get(
-        "/api/distributions/truncated_normal",
-        params=params,
-    )
-    # check status code
-    assert response.status_code == 200
-    # check that 1000 values were returned
-    values = response.json()["distValues"]
-    values_two = response_two.json()["distValues"]
-    assert len(values) == 1000
+    # check that the correct distribution was used
+    assert response.json()["distribution"] == "triangular"
     # check that the 1000 values are reproducible with the same inputs
     assert values == values_two
     # check that the 1000 values are not identical

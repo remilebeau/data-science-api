@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 import numpy as np
 import numpy_financial as npf
 from ..utils.utils import is_triangular, is_percent, is_all_zero, generate_stats
@@ -9,10 +8,6 @@ router = APIRouter(
     tags=["simulations"],
     responses={404: {"description": "Not found"}},
 )
-
-
-class MeanProfits(BaseModel):
-    meanProfits: list[float]
 
 
 # @desc Monte Carlo simulation for production planning
