@@ -1,8 +1,20 @@
 import numpy as np
 
 
-def is_triangular(min: float, mode: float, max: float):
-    return (min <= mode <= max) and min < max
+def is_triangular(min: float, mode: float, max: float, sd: float = 0):
+    return (min <= mode <= max) and min < max and sd == 0
+
+
+def is_normal(mean: float, sd: float, min: float = 0, max: float = 0):
+    return mean and sd > 0 and min == 0 and max == 0
+
+
+def is_uniform(min: float, max: float, mean: float = 0, sd: float = 0):
+    return min < max and mean == 0 and sd == 0
+
+
+def is_truncated_normal(min: float, mean: float, max: float, sd: float):
+    return (min <= mean <= max) and min < max and sd > 0
 
 
 def is_percent(num: float):
