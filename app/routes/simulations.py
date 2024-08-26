@@ -91,15 +91,15 @@ def simulation_random_values(
 # @access public
 @router.get("/production")
 def simulation_production(
-    unitCost: float,
-    unitPrice: float,
-    salvagePrice: float,
-    demandMin: float,
-    demandMode: float,
-    demandMax: float,
-    demandSD: float,
-    fixedCost: float,
-    productionQuantity: float,
+    unitCost: float = 0,
+    unitPrice: float = 0,
+    salvagePrice: float = 0,
+    demandMin: float = 0,
+    demandMode: float = 0,
+    demandMax: float = 0,
+    demandSD: float = 0,
+    fixedCost: float = 0,
+    productionQuantity: float = 0,
 ):
     """
     Simulates production and returns expected profit, the probability of losing money, and the 5% value at risk. Demand can follow a triangular, truncated normal, uniform, or normal distribution. α = 0.05. n = 1000.
@@ -397,12 +397,12 @@ def simulation_finance(
 # @access public
 @router.get("/cash_flow")
 def simulation_cash_flow(
-    periodsPerYear: int,
-    fixedCost: float,
-    min: float,
-    mean: float,
-    max: float,
-    sd: float,
+    periodsPerYear: int = 0,
+    fixedCost: float = 0,
+    min: float = 0,
+    mean: float = 0,
+    max: float = 0,
+    sd: float = 0,
 ):
     """
     Monte Carlo simulation for annual cash flow. Periodic cash flow can follow a triangular, truncated normal, uniform, or normal distribution. n = 1000.\n
