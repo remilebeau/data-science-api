@@ -516,3 +516,83 @@ def simulation_cash_flow(
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
     }
+
+
+# @desc Monte Carlo simulation for marketing
+# @route GET /api/simulations/marketing
+# @access public
+@router.get("/marketing")
+def marketing(
+    retentionRate: float,
+    discountRate: float,
+    stDev: float,
+    yearOneMeanProfit: float,
+    yearTwoMeanProfit: float,
+    yearThreeMeanProfit: float,
+    yearFourMeanProfit: float,
+    yearFiveMeanProfit: float,
+):
+    # validate data
+    if not is_percent(retentionRate):
+        raise HTTPException(
+            status_code=400,
+            detail="retentionRate must be between 0 and 1.",
+        )
+    if not is_percent(discountRate):
+        raise HTTPException(
+            status_code=400,
+            detail="discountRate must be between 0 and 1.",
+        )
+    if stDev < 0:
+        raise HTTPException(
+            status_code=400,
+            detail="stDev must be greater than 0.",
+        )
+
+    # set seed
+    rng = np.random.default_rng(seed=42)
+
+    def simulation():
+        mean_profits = [
+            yearOneMeanProfit,
+            yearTwoMeanProfit,
+            yearThreeMeanProfit,
+            yearFourMeanProfit,
+            yearFiveMeanProfit,
+        ]
+        # calculate actual profit in year 1
+        actual_profits = [
+            rng.normal(
+                yearOneMeanProfit,
+                abs(stDev * yearOneMeanProfit),
+            )
+        ]
+        # calculate actual profit in years 2-5
+        for year in range(1, 5):
+            # check if still a customer
+            is_customer = rng.random() <= retentionRate
+            # if customer, add actual profit for the year and continue
+            if is_customer:
+                actual_profits.append(
+                    rng.normal(mean_profits[year], abs(stDev * mean_profits[year]))
+                )
+            # if not customer, add actual profit for the year then break
+            else:
+                actual_profits.append(
+                    rng.normal(mean_profits[year], abs(stDev * mean_profits[year]))
+                )
+                break
+        npv = npf.npv(discountRate, actual_profits)
+        years_loyal = len(actual_profits)
+        return {
+            "npv": npv,
+            "yearsLoyal": years_loyal,
+        }
+
+    results = [simulation() for _ in range(1000)]
+    mean_npv = np.mean([result["npv"] for result in results])
+    mean_years_loyal = np.mean([result["yearsLoyal"] for result in results])
+    return {
+        "meanNPV": mean_npv,
+        "meanYearsLoyal": mean_years_loyal,
+    }
