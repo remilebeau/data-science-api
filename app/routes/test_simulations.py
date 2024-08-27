@@ -450,3 +450,62 @@ def test_simulations_cash_flow_normal():
     assert annual_cash_flows == annual_cash_flows_two
     # check that the 1000 values are not identical
     assert min(annual_cash_flows) < max(annual_cash_flows)
+
+
+# @desc Test marketing simulation
+# @route POST /api/simulations/marketing
+def test_simulations_marketing():
+    json = {
+        "retentionRate": 0.85,
+        "discountRate": 0.15,
+        "stDev": 0.1,
+        "meanProfits": [
+            -40,
+            66,
+            72,
+            79,
+            87,
+            92,
+            96,
+            99,
+            103,
+            106,
+            111,
+            116,
+            120,
+            124,
+            130,
+            137,
+            142,
+            148,
+            155,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+            161,
+        ],
+    }
+    response = client.post(
+        "/api/simulations/marketing",
+        json=json,
+    )
+    response_two = client.post(
+        "/api/simulations/marketing",
+        json=json,
+    )
+    # check status code
+    assert response.status_code == 200
+    # check that the meanNPV is reproducible with the same inputs
+    mean_npv = response.json()["meanNPV"]
+    mean_npv_two = response_two.json()["meanNPV"]
+    assert mean_npv == mean_npv_two
+    # check for accuracy
+    assert 170 <= mean_npv <= 180
+    mean_years_loyal = response.json()["meanYearsLoyal"]
+    assert 6 <= mean_years_loyal <= 7
