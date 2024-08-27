@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 import numpy as np
 import numpy_financial as npf
 from ..utils.utils import (
@@ -8,6 +9,14 @@ from ..utils.utils import (
     generate_stats,
     determine_distribution,
 )
+
+
+class MarketingInputs(BaseModel):
+    retentionRate: float
+    discountRate: float
+    stDev: float
+    meanProfits: list[float]
+
 
 router = APIRouter(
     prefix="/api/simulations",
@@ -519,19 +528,16 @@ def simulation_cash_flow(
 
 
 # @desc Monte Carlo simulation for marketing
-# @route GET /api/simulations/marketing
+# @route POST /api/simulations/marketing
 # @access public
-@router.get("/marketing")
-def marketing(
-    retentionRate: float,
-    discountRate: float,
-    stDev: float,
-    yearOneMeanProfit: float,
-    yearTwoMeanProfit: float,
-    yearThreeMeanProfit: float,
-    yearFourMeanProfit: float,
-    yearFiveMeanProfit: float,
-):
+@router.post("/marketing")
+def marketing(marketingInputs: MarketingInputs):
+    # get model inputs from request body
+    retentionRate = marketingInputs.retentionRate
+    discountRate = marketingInputs.discountRate
+    stDev = marketingInputs.stDev
+    mean_profits = marketingInputs.meanProfits
+
     # validate data
     if not is_percent(retentionRate):
         raise HTTPException(
@@ -552,26 +558,14 @@ def marketing(
     # set seed
     rng = np.random.default_rng(seed=42)
 
+    # define simulation
     def simulation():
-        mean_profits = [
-            yearOneMeanProfit,
-            yearTwoMeanProfit,
-            yearThreeMeanProfit,
-            yearFourMeanProfit,
-            yearFiveMeanProfit,
-        ]
-        # calculate actual profit in year 1
-        actual_profits = [
-            rng.normal(
-                yearOneMeanProfit,
-                abs(stDev * yearOneMeanProfit),
-            )
-        ]
-        # calculate actual profit in years 2-5
-        for year in range(1, 5):
+        actual_profits = []
+        # calculate actual profits
+        for year in range(0, len(mean_profits)):
             # check if still a customer
             is_customer = rng.random() <= retentionRate
-            # if customer, add actual profit for the year and continue
+            # if customer, add actual profit for the year then continue
             if is_customer:
                 actual_profits.append(
                     rng.normal(mean_profits[year], abs(stDev * mean_profits[year]))
@@ -582,16 +576,26 @@ def marketing(
                     rng.normal(mean_profits[year], abs(stDev * mean_profits[year]))
                 )
                 break
-        npv = npf.npv(discountRate, actual_profits)
+        # calculate years loyal
         years_loyal = len(actual_profits)
+        # calculate NPV
+        # insert 0 at index 0 for correct npv calculation
+        actual_profits.insert(0, 0)
+        npv = npf.npv(discountRate, actual_profits)
+
         return {
             "npv": npv,
             "yearsLoyal": years_loyal,
         }
 
+    # run simulation 1000 times
     results = [simulation() for _ in range(1000)]
+    # calculate mean npv
     mean_npv = np.mean([result["npv"] for result in results])
+    # calculate mean years loyal
     mean_years_loyal = np.mean([result["yearsLoyal"] for result in results])
+
+    # return results
     return {
         "meanNPV": mean_npv,
         "meanYearsLoyal": mean_years_loyal,
