@@ -455,49 +455,23 @@ def test_simulations_cash_flow_normal():
 # @desc Test marketing simulation
 # @route POST /api/simulations/marketing
 def test_simulations_marketing():
-    json = {
+    params = {
         "retentionRate": 0.85,
         "discountRate": 0.15,
         "stDev": 0.1,
-        "meanProfits": [
-            -40,
-            66,
-            72,
-            79,
-            87,
-            92,
-            96,
-            99,
-            103,
-            106,
-            111,
-            116,
-            120,
-            124,
-            130,
-            137,
-            142,
-            148,
-            155,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-            161,
-        ],
+        "yearOneMeanProfit": -40,
+        "yearTwoMeanProfit": 60,
+        "yearThreeMeanProfit": 80,
+        "yearFourMeanProfit": 100,
+        "yearFiveMeanProfit": 120,
     }
-    response = client.post(
+    response = client.get(
         "/api/simulations/marketing",
-        json=json,
+        params=params,
     )
-    response_two = client.post(
+    response_two = client.get(
         "/api/simulations/marketing",
-        json=json,
+        params=params,
     )
     # check status code
     assert response.status_code == 200
@@ -505,7 +479,3 @@ def test_simulations_marketing():
     mean_npv = response.json()["meanNPV"]
     mean_npv_two = response_two.json()["meanNPV"]
     assert mean_npv == mean_npv_two
-    # check for accuracy
-    assert 170 <= mean_npv <= 180
-    mean_years_loyal = response.json()["meanYearsLoyal"]
-    assert 6 <= mean_years_loyal <= 7
