@@ -528,15 +528,19 @@ def simulation_cash_flow(
 
 
 # @desc Monte Carlo simulation for marketing
-# @route POST /api/simulations/marketing
+# @route GET /api/simulations/marketing
 # @access public
-@router.post("/marketing")
-def marketing(marketingInputs: MarketingInputs):
-    # get model inputs from request body
-    retentionRate = marketingInputs.retentionRate
-    discountRate = marketingInputs.discountRate
-    stDev = marketingInputs.stDev
-    mean_profits = marketingInputs.meanProfits
+@router.get("/marketing")
+def marketing(
+    retentionRate: float,
+    discountRate: float,
+    stDev: float,
+    yearOneMeanProfit: float,
+    yearTwoMeanProfit: float,
+    yearThreeMeanProfit: float,
+    yearFourMeanProfit: float,
+    yearFiveMeanProfit: float,
+):
 
     # validate data
     if not is_percent(retentionRate):
@@ -560,9 +564,17 @@ def marketing(marketingInputs: MarketingInputs):
 
     # define simulation
     def simulation():
-        actual_profits = []
+        # combine mean profits into list
+        mean_profits = [
+            yearOneMeanProfit,
+            yearTwoMeanProfit,
+            yearThreeMeanProfit,
+            yearFourMeanProfit,
+            yearFiveMeanProfit,
+        ]
         # calculate actual profits
-        for year in range(0, len(mean_profits)):
+        actual_profits = []
+        for year in range(0, 5):
             # check if still a customer
             is_customer = rng.random() <= retentionRate
             # if customer, add actual profit for the year then continue
