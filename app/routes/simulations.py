@@ -532,6 +532,30 @@ def marketing(
     yearFourMeanProfit: float,
     yearFiveMeanProfit: float,
 ):
+    """
+    Calculates the mean NPV based on a given retention rate, discount rate, and list of mean profits over 5 years. Mean profit for each year follows a normal distribution with a standard deviation equal to a percentage of the mean profit for that year.
+
+    Args:\n
+        retentionRate (float): The retention rate.\n
+        discountRate (float): The discount rate.\n
+        stDev (float): The standard deviation of yearly mean profits, expressed as a percentage of the mean profit for that year.\n
+        yearOneMeanProfit (float): The mean profit for year one.\n
+        yearTwoMeanProfit (float): The mean profit for year two.\n
+        yearThreeMeanProfit (float): The mean profit for year three.\n
+        yearFourMeanProfit (float): The mean profit for year four.\n
+        yearFiveMeanProfit (float): The mean profit for year five.\n
+
+    Returns:\n
+        meanNPV: The mean NPV.
+        meanYearsLoyal: The mean number of years loyal.
+
+    Raises:\n
+        HTTPException: If the inputs do not satisfy the following conditions:
+            retentionRate must be between 0 and 1.
+            discountRate must be between 0 and 1.
+            stDev must be between 0 and 1.
+
+    """
 
     # validate data
     if not is_percent(retentionRate):
