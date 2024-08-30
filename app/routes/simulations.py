@@ -1,5 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 import numpy as np
 import numpy_financial as npf
 from ..utils.utils import (
@@ -9,14 +8,6 @@ from ..utils.utils import (
     generate_stats,
     determine_distribution,
 )
-
-
-class MarketingInputs(BaseModel):
-    retentionRate: float
-    discountRate: float
-    stDev: float
-    meanProfits: list[float]
-
 
 router = APIRouter(
     prefix="/api/simulations",
