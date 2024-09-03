@@ -36,10 +36,6 @@ def is_percent(num: float):
     return 0 <= num <= 1
 
 
-def is_all_zero(*args):
-    return all(value == 0 for value in args)
-
-
 # @desc returns mean, mean standard error, 95% confidence interval for mean, 95% confidence interval for the probability of negative profit, and value at risk at the 5% level
 def generate_stats(values: list[float]) -> dict[str, float]:
     mean = np.mean(values)
