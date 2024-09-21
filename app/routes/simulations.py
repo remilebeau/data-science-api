@@ -163,22 +163,18 @@ def simulation_production(
         return value
 
     # define demand distribution based on provided values
-    # truncated normal distribution
-    if is_triangular(demandMin, demandMode, demandMax) and demandSD > 0:
+    distribution = determine_distribution(demandMin, demandMode, demandMax, demandSD)
+    if distribution == "triangular":
+        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
+    elif distribution == "normal":
+        demand_distribution = rng.normal(demandMax, demandSD, 1000)
+    elif distribution == "uniform":
+        demand_distribution = rng.uniform(demandMin, demandMax, 1000)
+    elif distribution == "truncated normal":
         demand_distribution = [
             truncated_normal(demandMin, demandMode, demandMax, demandSD)
             for _ in range(0, 1000)
         ]
-    # triangular distribution
-    elif is_triangular(demandMin, demandMode, demandMax) and demandSD == 0:
-        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
-    # uniform distribution
-    elif demandMode == 0 and demandSD == 0 and demandMin < demandMax:
-        demand_distribution = rng.uniform(demandMin, demandMax, 1000)
-    # normal distribution
-    elif demandMin == 0 and demandMax == 0 and demandSD > 0:
-        demand_distribution = rng.normal(demandMax, demandSD, 1000)
-    # else raise exception
     else:
         raise HTTPException(
             status_code=400,
