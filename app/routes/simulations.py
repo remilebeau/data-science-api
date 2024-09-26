@@ -201,11 +201,7 @@ def simulation_production(
         q3,
         maximum,
         mean_profit,
-        mean_std_error,
-        mean_lower_ci,
-        mean_upper_ci,
-        p_lose_money_lower_ci,
-        p_lose_money_upper_ci,
+        p_lose_money,
         value_at_risk,
     ) = generate_stats(simulated_profits).values()
 
@@ -216,11 +212,7 @@ def simulation_production(
         "q3": q3,
         "maximum": maximum,
         "meanProfit": mean_profit,
-        "meanStandardError": mean_std_error,
-        "meanLowerCI": mean_lower_ci,
-        "meanUpperCI": mean_upper_ci,
-        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
-        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
+        "pLoseMoney": p_lose_money,
         "valueAtRisk": value_at_risk,
         "simulatedProfits": simulated_profits,
     }
