@@ -195,6 +195,11 @@ def simulation_production(
 
     # generate stats
     (
+        minimum,
+        q1,
+        median,
+        q3,
+        maximum,
         mean_profit,
         mean_std_error,
         mean_lower_ci,
@@ -205,6 +210,11 @@ def simulation_production(
     ) = generate_stats(simulated_profits).values()
 
     return {
+        "minimum": minimum,
+        "q1": q1,
+        "median": median,
+        "q3": q3,
+        "maximum": maximum,
         "meanProfit": mean_profit,
         "meanStandardError": mean_std_error,
         "meanLowerCI": mean_lower_ci,
