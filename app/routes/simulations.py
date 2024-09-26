@@ -211,7 +211,7 @@ def simulation_production(
         "median": median,
         "q3": q3,
         "maximum": maximum,
-        "meanProfit": mean_profit,
+        "mean": mean_profit,
         "pLoseMoney": p_lose_money,
         "valueAtRisk": value_at_risk,
         "simulatedProfits": simulated_profits,
