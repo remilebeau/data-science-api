@@ -90,12 +90,12 @@ def simulation_production(
     unitCost: float = 0,
     unitPrice: float = 0,
     salvagePrice: float = 0,
+    fixedCost: float = 0,
+    productionQuantity: float = 0,
     demandMin: float = 0,
     demandMode: float = 0,
     demandMax: float = 0,
     demandSD: float = 0,
-    fixedCost: float = 0,
-    productionQuantity: float = 0,
 ):
     """
     Simulates production and returns expected profit, the probability of losing money, and the 5% value at risk. Demand can follow a triangular, truncated normal, uniform, or normal distribution. α = 0.05. n = 1000.
@@ -205,7 +205,6 @@ def simulation_production(
     ) = generate_stats(simulated_profits).values()
 
     return {
-        "simulatedProfits": simulated_profits,
         "meanProfit": mean_profit,
         "meanStandardError": mean_std_error,
         "meanLowerCI": mean_lower_ci,
@@ -213,4 +212,5 @@ def simulation_production(
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
         "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "valueAtRisk": value_at_risk,
+        "simulatedProfits": simulated_profits,
     }
