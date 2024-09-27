@@ -67,11 +67,13 @@ def simulation_production(
 
     # generate stats
     minimum = np.min(simulated_profits)
+    fivePercentile = np.percentile(simulated_profits, 5)
     tenPercentile = np.percentile(simulated_profits, 10)
     q1 = np.percentile(simulated_profits, 25)
     median = np.percentile(simulated_profits, 50)
     q3 = np.percentile(simulated_profits, 75)
     ninetyPercentile = np.percentile(simulated_profits, 90)
+    ninetyFivePercentile = np.percentile(simulated_profits, 95)
     maximum = np.max(simulated_profits)
     mean_profit = np.mean(simulated_profits)
     p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
@@ -80,11 +82,13 @@ def simulation_production(
 
     return {
         "minimum": minimum,
+        "fivePercentile": fivePercentile,
         "tenPercentile": tenPercentile,
         "q1": q1,
         "median": median,
         "q3": q3,
         "ninetyPercentile": ninetyPercentile,
+        "ninetyFivePercentile": ninetyFivePercentile,
         "maximum": maximum,
         "mean": mean_profit,
         "pLoseMoney": p_lose_money,
