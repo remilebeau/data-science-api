@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 import numpy as np
-from ..utils.utils import generate_stats, is_triangular, is_truncated_normal
+from ..utils.utils import is_triangular, is_truncated_normal
 
 router = APIRouter(
     prefix="/api/simulations",
@@ -66,25 +66,26 @@ def simulation_production(
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
-    (
-        minimum,
-        q1,
-        median,
-        q3,
-        maximum,
-        mean_profit,
-        p_lose_money,
-        value_at_risk,
-    ) = generate_stats(simulated_profits).values()
+
+    minimum = np.min(simulated_profits)
+    tenPercentile = np.percentile(simulated_profits, 10)
+    q1 = np.percentile(simulated_profits, 25)
+    median = np.percentile(simulated_profits, 50)
+    q3 = np.percentile(simulated_profits, 75)
+    maximum = np.max(simulated_profits)
+    mean_profit = np.mean(simulated_profits)
+    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
+        simulated_profits
+    )
 
     return {
         "minimum": minimum,
+        "tenPercentile": tenPercentile,
         "q1": q1,
         "median": median,
         "q3": q3,
         "maximum": maximum,
         "mean": mean_profit,
         "pLoseMoney": p_lose_money,
-        "valueAtRisk": value_at_risk,
         "simulatedProfits": simulated_profits,
     }
