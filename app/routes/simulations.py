@@ -67,30 +67,40 @@ def simulation_production(
 
     # generate stats
     minimum = np.min(simulated_profits)
-    fivePercentile = np.percentile(simulated_profits, 5)
-    tenPercentile = np.percentile(simulated_profits, 10)
+    value_at_risk = np.percentile(simulated_profits, 5)
     q1 = np.percentile(simulated_profits, 25)
     median = np.percentile(simulated_profits, 50)
     q3 = np.percentile(simulated_profits, 75)
-    ninetyPercentile = np.percentile(simulated_profits, 90)
-    ninetyFivePercentile = np.percentile(simulated_profits, 95)
     maximum = np.max(simulated_profits)
     mean_profit = np.mean(simulated_profits)
+    mean_lower_ci = np.mean(simulated_profits) - 1.96 * np.std(
+        simulated_profits
+    ) / np.sqrt(len(simulated_profits))
+    mean_upper_ci = np.mean(simulated_profits) + 1.96 * np.std(
+        simulated_profits
+    ) / np.sqrt(len(simulated_profits))
     p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
         simulated_profits
+    )
+    p_lose_money_lower_ci = p_lose_money - np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
+    )
+    p_lose_money_upper_ci = p_lose_money + np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
     )
 
     return {
         "minimum": minimum,
-        "fivePercentile": fivePercentile,
-        "tenPercentile": tenPercentile,
+        "valueAtRisk": value_at_risk,
         "q1": q1,
+        "mean": mean_profit,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
         "median": median,
         "q3": q3,
-        "ninetyPercentile": ninetyPercentile,
-        "ninetyFivePercentile": ninetyFivePercentile,
         "maximum": maximum,
-        "mean": mean_profit,
         "pLoseMoney": p_lose_money,
+        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "simulatedProfits": simulated_profits,
     }
