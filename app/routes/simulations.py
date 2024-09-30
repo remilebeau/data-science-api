@@ -76,7 +76,7 @@ def simulation_production(
     mean_profit_lower_ci = mean_profit - 1.96 * np.std(simulated_profits) / np.sqrt(
         len(simulated_profits)
     )
-    mean_profit_lower_ci = mean_profit + 1.96 * np.std(simulated_profits) / np.sqrt(
+    mean_profit_upper_ci = mean_profit + 1.96 * np.std(simulated_profits) / np.sqrt(
         len(simulated_profits)
     )
     p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
@@ -95,7 +95,7 @@ def simulation_production(
         "q1": q1,
         "mean": mean_profit,
         "meanLowerCI": mean_profit_lower_ci,
-        "meanUpperCI": mean_profit_lower_ci,
+        "meanUpperCI": mean_profit_upper_ci,
         "median": median,
         "q3": q3,
         "maximum": maximum,
