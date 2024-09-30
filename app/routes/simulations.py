@@ -85,7 +85,7 @@ def simulation_production(
     p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
         p_lose_money * (1 - p_lose_money) / len(simulated_profits)
     )
-    p_lose_money_lower_ci = p_lose_money + 1.96 * np.sqrt(
+    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
         p_lose_money * (1 - p_lose_money) / len(simulated_profits)
     )
 
@@ -101,6 +101,6 @@ def simulation_production(
         "maximum": maximum,
         "pLoseMoney": p_lose_money,
         "pLoseMoneyLowerCI": p_lose_money_lower_ci,
-        "pLoseMoneyUpperCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "simulatedProfits": simulated_profits,
     }
