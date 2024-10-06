@@ -67,7 +67,7 @@ def simulation_production(
 
     # generate stats
     minimum = np.min(simulated_profits)
-    value_at_risk = np.percentile(simulated_profits, 5)
+    value_at_risk = min(np.percentile(simulated_profits, 5), 0)
     q1 = np.percentile(simulated_profits, 25)
     median = np.percentile(simulated_profits, 50)
     q3 = np.percentile(simulated_profits, 75)
