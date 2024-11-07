@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 import numpy as np
-from ..utils.utils import is_triangular, is_truncated_normal
+from ..utils.utils import generate_stats, is_triangular, is_truncated_normal
 
 router = APIRouter(
     prefix="/api/simulations",
@@ -66,28 +66,20 @@ def simulation_production(
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
     # generate stats
-    minimum = np.min(simulated_profits)
-    value_at_risk = min(np.percentile(simulated_profits, 5), 0)
-    q1 = np.percentile(simulated_profits, 25)
-    median = np.percentile(simulated_profits, 50)
-    q3 = np.percentile(simulated_profits, 75)
-    maximum = np.max(simulated_profits)
-    mean_profit = np.mean(simulated_profits)
-    mean_profit_lower_ci = mean_profit - 1.96 * np.std(simulated_profits) / np.sqrt(
-        len(simulated_profits)
-    )
-    mean_profit_upper_ci = mean_profit + 1.96 * np.std(simulated_profits) / np.sqrt(
-        len(simulated_profits)
-    )
-    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
-        simulated_profits
-    )
-    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
-    )
-    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
-    )
+    (
+        minimum,
+        value_at_risk,
+        q1,
+        median,
+        q3,
+        maximum,
+        mean_profit,
+        mean_profit_lower_ci,
+        mean_profit_upper_ci,
+        p_lose_money,
+        p_lose_money_lower_ci,
+        p_lose_money_upper_ci,
+    ) = generate_stats(simulated_profits)
 
     return {
         "minimum": minimum,
