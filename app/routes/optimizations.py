@@ -22,50 +22,58 @@ def optimization_staffing(
     sunday: int,
 ):
     """
-    minimize x1+x2+x3+x4+x5+x6+x7
-    s.t.
-    x1+x4+x5+x6+x7 >= monday
-    x1+x2+x5+x6+x7 >= tuesday
-    x1+x2+x3+x6+x7 >= wednesday
-    x1+x2+x3+x4+x7 >= thursday
-    x1+x2+x3+x4+x5 >= friday
-    x2+x3+x4+x5+x6 >= saturday
-    x3+x4+x5+x6+x7 >= sunday
+    optimization model to minimize staffing
+
+    PARAMS:
+
+    monday = number of employees required every Monday
+
+    RESULTS:
+
+    ObjFuncVal = minimum number of employees to satisfy staffing requirements
+
+    xMonday = number of employees whose workweek begins on Monday (i.e. Monday to Friday)
+
+
+
+    the same pattern applies to all seven days of the week
     """
 
     # create solver
     solver = pywraplp.Solver.CreateSolver("SCIP")
 
     # decision variables
-    x1 = solver.IntVar(0, solver.Infinity(), "x1")
-    x2 = solver.IntVar(0, solver.Infinity(), "x2")
-    x3 = solver.IntVar(0, solver.Infinity(), "x3")
-    x4 = solver.IntVar(0, solver.Infinity(), "x4")
-    x5 = solver.IntVar(0, solver.Infinity(), "x5")
-    x6 = solver.IntVar(0, solver.Infinity(), "x6")
-    x7 = solver.IntVar(0, solver.Infinity(), "x7")
+    xMonday = solver.IntVar(0, solver.Infinity(), "xMonday")
+    xTuesday = solver.IntVar(0, solver.Infinity(), "xTuesday")
+    xWednesday = solver.IntVar(0, solver.Infinity(), "xWednesday")
+    xThursday = solver.IntVar(0, solver.Infinity(), "xThursday")
+    xFriday = solver.IntVar(0, solver.Infinity(), "xFriday")
+    xSaturday = solver.IntVar(0, solver.Infinity(), "xSaturday")
+    xSunday = solver.IntVar(0, solver.Infinity(), "xSunday")
     # constraints
-    solver.Add(x1 + x4 + x5 + x6 + x7 >= monday)
-    solver.Add(x1 + x2 + x5 + x6 + x7 >= tuesday)
-    solver.Add(x1 + x2 + x3 + x6 + x7 >= wednesday)
-    solver.Add(x1 + x2 + x3 + x4 + x7 >= thursday)
-    solver.Add(x1 + x2 + x3 + x4 + x5 >= friday)
-    solver.Add(x2 + x3 + x4 + x5 + x6 >= saturday)
-    solver.Add(x3 + x4 + x5 + x6 + x7 >= sunday)
+    solver.Add(xMonday + xThursday + xFriday + xSaturday + xSunday >= monday)
+    solver.Add(xMonday + xTuesday + xFriday + xSaturday + xSunday >= tuesday)
+    solver.Add(xMonday + xTuesday + xWednesday + xSaturday + xSunday >= wednesday)
+    solver.Add(xMonday + xTuesday + xWednesday + xThursday + xSunday >= thursday)
+    solver.Add(xMonday + xTuesday + xWednesday + xThursday + xFriday >= friday)
+    solver.Add(xTuesday + xWednesday + xThursday + xFriday + xSaturday >= saturday)
+    solver.Add(xWednesday + xThursday + xFriday + xSaturday + xSunday >= sunday)
     # solve
-    solver.Minimize(x1 + x2 + x3 + x4 + x5 + x6 + x7)
+    solver.Minimize(
+        xMonday + xTuesday + xWednesday + xThursday + xFriday + xSaturday + xSunday
+    )
     status = solver.Solve()
     # print results
     if status == pywraplp.Solver.OPTIMAL:
         return {
             "objFuncVal": solver.Objective().Value(),
-            "x1": x1.solution_value(),
-            "x2": x2.solution_value(),
-            "x3": x3.solution_value(),
-            "x4": x4.solution_value(),
-            "x5": x5.solution_value(),
-            "x6": x6.solution_value(),
-            "x7": x7.solution_value(),
+            "xMonday": xMonday.solution_value(),
+            "xTuesday": xTuesday.solution_value(),
+            "xWednesday": xWednesday.solution_value(),
+            "xThursday": xThursday.solution_value(),
+            "xFriday": xFriday.solution_value(),
+            "xSaturday": xSaturday.solution_value(),
+            "xSunday": xSunday.solution_value(),
         }
 
     else:
