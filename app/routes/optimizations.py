@@ -11,6 +11,7 @@ router = APIRouter(
 # @DESC optimization model for minimizing staffing
 # @route GET /api/optimizations/staffing
 # @access public
+@router.get("/staffing")
 def optimization_staffing(
     monday: int,
     tuesday: int,
