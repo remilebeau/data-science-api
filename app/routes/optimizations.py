@@ -26,17 +26,24 @@ def optimization_staffing(
 
     PARAMS:
 
-    monday = number of employees required every Monday
+    monday = number of staff required every Monday\n
+    tuesday = number of staff required every Tuesday\n
+    wednesday = number of staff required every Wednesday\n
+    thursday = number of staff required every Thursday\n
+    friday = number of staff required every Friday\n
+    saturday = number of staff required every Saturday\n
+    sunday = number of staff required every Sunday\n
 
     RESULTS:
 
-    ObjFuncVal = minimum number of employees to satisfy staffing requirements
-
-    xMonday = number of employees whose workweek begins on Monday (i.e. Monday to Friday)
-
-
-
-    the same pattern applies to all seven days of the week
+    ObjFuncVal = minimum number of staff to satisfy staffing requirements. Equal to the sum of xMonday...xSunday\n
+    xMonday = number of staff whose workweek begins on Monday (Monday to Friday)\n
+    xTuesday = number of staff whose workweek begins on Tuesday (Tuesday to Saturday)\n
+    xWednesday = number of staff whose workweek begins on Wednesday (Wednesday to Sunday)\n
+    xThursday = number of staff whose workweek begins on Thursday (Thursday to Monday)\n
+    xFriday = number of staff whose workweek begins on Friday (Friday to Tuesday)\n
+    xSaturday = number of staff whose workweek begins on Saturday (Saturday to Wednesday)\n
+    xSunday = number of staff whose workweek begins on Sunday (Sunday to Thursday)\n
     """
 
     # create solver
