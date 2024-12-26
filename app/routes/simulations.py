@@ -14,17 +14,48 @@ router = APIRouter(
 # @access public
 @router.get("/production")
 def simulation_production(
+    productionQuantity: float,
     unitCost: float,
     unitPrice: float,
     salvagePrice: float,
     fixedCost: float,
-    productionQuantity: float,
     demandMin: float,
     demandMode: float,
     demandMax: float,
     demandSD: float,
 ):
+    """
+    Monte Carlo simulation for production planning
 
+    PARAMS:
+
+    productionQuantity: number of units to be produced\n
+    unitCost: variable costs per unit\n
+    unitPrice: sell price per unit\n
+    salvagePrice: salvage price of units produced above demand\n
+    fixedCost: fixed cost of production\n
+    demandMin: minimum forecasted demand\n
+    demandMode: average forecasted demand\n
+    demandMax: maximum forecasted demand\n
+    demandSD: standard deviation forecasted demand\n
+
+    RETURNS:
+
+    minimum: minimum profit\n
+    valueAtRisk: 5th percentile profit\n
+    q1: 25th percentile profit\n
+    mean: mean profit\n
+    meanLowerCI: mean profit lower 95% confidence interval\n
+    meanUpperCI: mean profit upper 95% confidence interval\n
+    median: 50th percentile profit\n
+    q3: 75th percentile profit\n
+    maximum: maximum profit\n
+    pLoseMoney: probability of losing money\n
+    pLoseMoneyLowerCI: probability of losing money 95% lower confidence interval\n
+    pLoseMoneyUpperCI: probability of losing money 95% upper confidence interval\n
+    simulatedProfits: 1000 simulated profits
+
+    """
     # set seed
     rng = np.random.default_rng(seed=42)
 
