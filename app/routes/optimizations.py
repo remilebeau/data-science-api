@@ -57,18 +57,27 @@ def optimization_staffing(
     xFriday = solver.IntVar(0, solver.Infinity(), "xFriday")
     xSaturday = solver.IntVar(0, solver.Infinity(), "xSaturday")
     xSunday = solver.IntVar(0, solver.Infinity(), "xSunday")
-    # constraints
-    solver.Add(xMonday + xThursday + xFriday + xSaturday + xSunday >= monday)
-    solver.Add(xMonday + xTuesday + xFriday + xSaturday + xSunday >= tuesday)
-    solver.Add(xMonday + xTuesday + xWednesday + xSaturday + xSunday >= wednesday)
-    solver.Add(xMonday + xTuesday + xWednesday + xThursday + xSunday >= thursday)
-    solver.Add(xMonday + xTuesday + xWednesday + xThursday + xFriday >= friday)
-    solver.Add(xTuesday + xWednesday + xThursday + xFriday + xSaturday >= saturday)
-    solver.Add(xWednesday + xThursday + xFriday + xSaturday + xSunday >= sunday)
-    # solve
-    solver.Minimize(
+    # objective function
+    obj_func = (
         xMonday + xTuesday + xWednesday + xThursday + xFriday + xSaturday + xSunday
     )
+    # constraints
+    monday_staff = xMonday + xThursday + xFriday + xSaturday + xSunday
+    tuesday_staff = xMonday + xTuesday + xFriday + xSaturday + xSunday
+    wednesday_staff = xMonday + xTuesday + xWednesday + xSaturday + xSunday
+    thursday_staff = xMonday + xTuesday + xWednesday + xThursday + xSunday
+    friday_staff = xMonday + xTuesday + xWednesday + xThursday + xFriday
+    saturday_staff = xTuesday + xWednesday + xThursday + xFriday + xSaturday
+    sunday_staff = xWednesday + xThursday + xFriday + xSaturday + xSunday
+    solver.Add(monday_staff >= monday)
+    solver.Add(tuesday_staff >= tuesday)
+    solver.Add(wednesday_staff >= wednesday)
+    solver.Add(thursday_staff >= thursday)
+    solver.Add(friday_staff >= friday)
+    solver.Add(saturday_staff >= saturday)
+    solver.Add(sunday_staff >= sunday)
+    # solve
+    solver.Minimize(obj_func)
     status = solver.Solve()
     # print results
     if status == pywraplp.Solver.OPTIMAL:
