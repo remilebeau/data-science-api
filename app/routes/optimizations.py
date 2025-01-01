@@ -26,49 +26,97 @@ def optimization_staffing(
 
     PARAMS:
 
-    monday = number of staff required every Monday\n
-    tuesday = number of staff required every Tuesday\n
-    wednesday = number of staff required every Wednesday\n
-    thursday = number of staff required every Thursday\n
-    friday = number of staff required every Friday\n
-    saturday = number of staff required every Saturday\n
-    sunday = number of staff required every Sunday\n
+    monday = Monday staff constraint\n
+    tuesday = Tuesday staff constraint\n
+    wednesday = Wednesday staff constraint\n
+    thursday = Thursday staff constraint\n
+    friday = Friday staff constraint\n
+    saturday = Saturday staff constraint\n
+    sunday = Sunday staff constraint\n
 
     RESULTS:
 
-    ObjFuncVal = minimum number of staff to satisfy staffing requirements. Equal to the sum of xMonday...xSunday\n
-    xMonday = number of staff whose workweek begins on Monday (Monday to Friday)\n
-    xTuesday = number of staff whose workweek begins on Tuesday (Tuesday to Saturday)\n
-    xWednesday = number of staff whose workweek begins on Wednesday (Wednesday to Sunday)\n
-    xThursday = number of staff whose workweek begins on Thursday (Thursday to Monday)\n
-    xFriday = number of staff whose workweek begins on Friday (Friday to Tuesday)\n
-    xSaturday = number of staff whose workweek begins on Saturday (Saturday to Wednesday)\n
-    xSunday = number of staff whose workweek begins on Sunday (Sunday to Thursday)\n
+    ObjFuncVal = minimum number of staff that meets staffing requirements\n
+    xMondayFriday = number of Monday to Friday staff\n
+    xTuesdaySaturday = number of Tuesday to Saturday staff\n
+    xWednesdaySunday = number of Wednesday to Sunday staff\n
+    xThursdayMonday = number of Thursday to Monday staff\n
+    xFridayTuesday = number of Friday to Tuesday staff\n
+    xSaturdayWednesday = number of Saturday to Wednesday staff\n
+    xSundayThursday = number of Sunday to Thursday staff\n
     """
 
     # create solver
     solver = pywraplp.Solver.CreateSolver("SCIP")
 
     # decision variables
-    xMonday = solver.IntVar(0, solver.Infinity(), "xMonday")
-    xTuesday = solver.IntVar(0, solver.Infinity(), "xTuesday")
-    xWednesday = solver.IntVar(0, solver.Infinity(), "xWednesday")
-    xThursday = solver.IntVar(0, solver.Infinity(), "xThursday")
-    xFriday = solver.IntVar(0, solver.Infinity(), "xFriday")
-    xSaturday = solver.IntVar(0, solver.Infinity(), "xSaturday")
-    xSunday = solver.IntVar(0, solver.Infinity(), "xSunday")
+    xMondayFriday = solver.IntVar(0, solver.Infinity(), "xMondayFriday")
+    xTuesdaySaturday = solver.IntVar(0, solver.Infinity(), "xTuesdaySaturday")
+    xWednesdaySunday = solver.IntVar(0, solver.Infinity(), "xWednesdaySunday")
+    xThursdayMonday = solver.IntVar(0, solver.Infinity(), "xThursdayMonday")
+    xFridayTuesday = solver.IntVar(0, solver.Infinity(), "xFridayTuesday")
+    xSaturdayWednesday = solver.IntVar(0, solver.Infinity(), "xSaturdayWednesday")
+    xSundayThursday = solver.IntVar(0, solver.Infinity(), "xSundayThursday")
     # objective function
     obj_func = (
-        xMonday + xTuesday + xWednesday + xThursday + xFriday + xSaturday + xSunday
+        xMondayFriday
+        + xTuesdaySaturday
+        + xWednesdaySunday
+        + xThursdayMonday
+        + xFridayTuesday
+        + xSaturdayWednesday
+        + xSundayThursday
     )
     # constraints
-    monday_staff = xMonday + xThursday + xFriday + xSaturday + xSunday
-    tuesday_staff = xMonday + xTuesday + xFriday + xSaturday + xSunday
-    wednesday_staff = xMonday + xTuesday + xWednesday + xSaturday + xSunday
-    thursday_staff = xMonday + xTuesday + xWednesday + xThursday + xSunday
-    friday_staff = xMonday + xTuesday + xWednesday + xThursday + xFriday
-    saturday_staff = xTuesday + xWednesday + xThursday + xFriday + xSaturday
-    sunday_staff = xWednesday + xThursday + xFriday + xSaturday + xSunday
+    monday_staff = (
+        xMondayFriday
+        + xThursdayMonday
+        + xFridayTuesday
+        + xSaturdayWednesday
+        + xSundayThursday
+    )
+    tuesday_staff = (
+        xMondayFriday
+        + xTuesdaySaturday
+        + xFridayTuesday
+        + xSaturdayWednesday
+        + xSundayThursday
+    )
+    wednesday_staff = (
+        xMondayFriday
+        + xTuesdaySaturday
+        + xWednesdaySunday
+        + xSaturdayWednesday
+        + xSundayThursday
+    )
+    thursday_staff = (
+        xMondayFriday
+        + xTuesdaySaturday
+        + xWednesdaySunday
+        + xThursdayMonday
+        + xSundayThursday
+    )
+    friday_staff = (
+        xMondayFriday
+        + xTuesdaySaturday
+        + xWednesdaySunday
+        + xThursdayMonday
+        + xFridayTuesday
+    )
+    saturday_staff = (
+        xTuesdaySaturday
+        + xWednesdaySunday
+        + xThursdayMonday
+        + xFridayTuesday
+        + xSaturdayWednesday
+    )
+    sunday_staff = (
+        xWednesdaySunday
+        + xThursdayMonday
+        + xFridayTuesday
+        + xSaturdayWednesday
+        + xSundayThursday
+    )
     solver.Add(monday_staff >= monday)
     solver.Add(tuesday_staff >= tuesday)
     solver.Add(wednesday_staff >= wednesday)
@@ -83,13 +131,20 @@ def optimization_staffing(
     if status == pywraplp.Solver.OPTIMAL:
         return {
             "objFuncVal": solver.Objective().Value(),
-            "xMonday": xMonday.solution_value(),
-            "xTuesday": xTuesday.solution_value(),
-            "xWednesday": xWednesday.solution_value(),
-            "xThursday": xThursday.solution_value(),
-            "xFriday": xFriday.solution_value(),
-            "xSaturday": xSaturday.solution_value(),
-            "xSunday": xSunday.solution_value(),
+            "xMondayFriday": xMondayFriday.solution_value(),
+            "xTuesdaySaturday": xTuesdaySaturday.solution_value(),
+            "xWednesdaySunday": xWednesdaySunday.solution_value(),
+            "xThursdayMonday": xThursdayMonday.solution_value(),
+            "xFridayTuesday": xFridayTuesday.solution_value(),
+            "xSaturdayWednesday": xSaturdayWednesday.solution_value(),
+            "xSundayThursday": xSundayThursday.solution_value(),
+            "mondayStaff": monday_staff.solution_value(),
+            "tuesdayStaff": tuesday_staff.solution_value(),
+            "wednesdayStaff": wednesday_staff.solution_value(),
+            "thursdayStaff": thursday_staff.solution_value(),
+            "fridayStaff": friday_staff.solution_value(),
+            "saturdayStaff": saturday_staff.solution_value(),
+            "sundayStaff": sunday_staff.solution_value(),
         }
 
     else:
