@@ -44,6 +44,13 @@ def optimization_staffing(
     xFridayTuesday = number of Friday to Tuesday staff\n
     xSaturdayWednesday = number of Saturday to Wednesday staff\n
     xSundayThursday = number of Sunday to Thursday staff\n
+    mondayStaff = number of Monday staff\n
+    tuesdayStaff = number of Tuesday staff\n
+    wednesdayStaff = number of Wednesday staff\n
+    thursdayStaff = number of Thursday staff\n
+    fridayStaff = number of Friday staff\n
+    saturdayStaff= number of Saturday staff\n
+    sundayStaff = number of Sunday staff\n
     """
 
     # create solver
