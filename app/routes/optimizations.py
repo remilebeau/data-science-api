@@ -21,9 +21,9 @@ router = APIRouter(
 
 
 # @DESC optimization model for minimizing staffing
-# @route POST /api/optimizations/staffing
+# @route GET /api/optimizations/staffing
 # @access public
-@router.post("/staffing")
+@router.get("/staffing")
 def optimization_staffing(requirements: StaffingRequirements):
 
     # create solver
@@ -38,7 +38,7 @@ def optimization_staffing(requirements: StaffingRequirements):
     x6 = solver.IntVar(0, solver.Infinity(), "x6")
     x7 = solver.IntVar(0, solver.Infinity(), "x7")
     # objective function
-    obj_func = x1 + x2 + x3 + x4 + x5 + x6 + x7
+    min_staff = x1 + x2 + x3 + x4 + x5 + x6 + x7
     # constraints
     # LHS
     monAva = x1 + x4 + x5 + x6 + x7
@@ -65,12 +65,12 @@ def optimization_staffing(requirements: StaffingRequirements):
     solver.Add(satAva >= satReq)
     solver.Add(sunAva >= sunReq)
     # solve
-    solver.Minimize(obj_func)
+    solver.Minimize(min_staff)
     status = solver.Solve()
     # print results
     if status == pywraplp.Solver.OPTIMAL:
         return {
-            "objFuncVal": solver.Objective().Value(),
+            "minStaff": solver.Objective().Value(),
             "x1": x1.solution_value(),
             "x2": x2.solution_value(),
             "x3": x3.solution_value(),
