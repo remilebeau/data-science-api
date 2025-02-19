@@ -21,9 +21,9 @@ router = APIRouter(
 
 
 # @DESC optimization model for minimizing staffing
-# @route GET /api/optimizations/staffing
+# @route POST /api/optimizations/staffing
 # @access public
-@router.get("/staffing")
+@router.post("/staffing")
 def optimization_staffing(requirements: StaffingRequirements):
 
     # create solver
