@@ -116,6 +116,17 @@ def optimization_staffing(constraints: Constraints):
     # solve
     solver.Minimize(min_staff)
     status = solver.Solve()
+    # calculate slack for each constraint
+    monSlack = monAva.solution_value() - monReq
+    tueSlack = tueAva.solution_value() - tueReq
+    wedSlack = wedAva.solution_value() - wedReq
+    thuSlack = thuAva.solution_value() - thuReq
+    friSlack = friAva.solution_value() - friReq
+    satSlack = satAva.solution_value() - satReq
+    sunSlack = sunAva.solution_value() - sunReq
+    totalSlack = (
+        monSlack + tueSlack + wedSlack + thuSlack + friSlack + satSlack + sunSlack
+    )
     # print results
     if status == pywraplp.Solver.OPTIMAL:
         return {
@@ -134,6 +145,14 @@ def optimization_staffing(constraints: Constraints):
             "friAva": friAva.solution_value(),
             "satAva": satAva.solution_value(),
             "sunAva": sunAva.solution_value(),
+            "monSlack": monSlack,
+            "tueSlack": tueSlack,
+            "wedSlack": wedSlack,
+            "thuSlack": thuSlack,
+            "friSlack": friSlack,
+            "satSlack": satSlack,
+            "sunSlack": sunSlack,
+            "totalSlack": totalSlack,
         }
 
     else:
