@@ -55,14 +55,23 @@ def optimization_staffing(constraints: Constraints):
     # create solver
     solver = pywraplp.Solver.CreateSolver("SCIP")
 
+    # define upper bounds, if provided
+    x1Ub = constraints.x1Max if constraints.x1Max is not None else solver.Infinity()
+    x2Ub = constraints.x2Max if constraints.x2Max is not None else solver.Infinity()
+    x3Ub = constraints.x3Max if constraints.x3Max is not None else solver.Infinity()
+    x4Ub = constraints.x4Max if constraints.x4Max is not None else solver.Infinity()
+    x5Ub = constraints.x5Max if constraints.x5Max is not None else solver.Infinity()
+    x6Ub = constraints.x6Max if constraints.x6Max is not None else solver.Infinity()
+    x7Ub = constraints.x7Max if constraints.x7Max is not None else solver.Infinity()
+
     # decision variables
-    x1 = solver.IntVar(lb=0, ub=constraints.x1Max or solver.Infinity(), name="x1")
-    x2 = solver.IntVar(lb=0, ub=constraints.x2Max or solver.Infinity(), name="x2")
-    x3 = solver.IntVar(lb=0, ub=constraints.x3Max or solver.Infinity(), name="x3")
-    x4 = solver.IntVar(lb=0, ub=constraints.x4Max or solver.Infinity(), name="x4")
-    x5 = solver.IntVar(lb=0, ub=constraints.x5Max or solver.Infinity(), name="x5")
-    x6 = solver.IntVar(lb=0, ub=constraints.x6Max or solver.Infinity(), name="x6")
-    x7 = solver.IntVar(lb=0, ub=constraints.x7Max or solver.Infinity(), name="x7")
+    x1 = solver.IntVar(lb=0, ub=x1Ub, name="x1")
+    x2 = solver.IntVar(lb=0, ub=x2Ub, name="x2")
+    x3 = solver.IntVar(lb=0, ub=x3Ub, name="x3")
+    x4 = solver.IntVar(lb=0, ub=x4Ub, name="x4")
+    x5 = solver.IntVar(lb=0, ub=x5Ub, name="x5")
+    x6 = solver.IntVar(lb=0, ub=x6Ub, name="x6")
+    x7 = solver.IntVar(lb=0, ub=x7Ub, name="x7")
     # objective function
     min_staff = x1 + x2 + x3 + x4 + x5 + x6 + x7
     # constraints
