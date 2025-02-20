@@ -11,13 +11,13 @@ class Constraints(BaseModel):
     friReq: int
     satReq: int
     sunReq: int
-    x1Max: int | None = None
-    x2Max: int | None = None
-    x3Max: int | None = None
-    x4Max: int | None = None
-    x5Max: int | None = None
-    x6Max: int | None = None
-    x7Max: int | None = None
+    x1Max: int | str
+    x2Max: int | str
+    x3Max: int | str
+    x4Max: int | str
+    x5Max: int | str
+    x6Max: int | str
+    x7Max: int | str
 
 
 router = APIRouter(
@@ -56,13 +56,27 @@ def optimization_staffing(constraints: Constraints):
     solver = pywraplp.Solver.CreateSolver("SCIP")
 
     # define upper bounds, if provided
-    x1Ub = constraints.x1Max if constraints.x1Max is not None else solver.Infinity()
-    x2Ub = constraints.x2Max if constraints.x2Max is not None else solver.Infinity()
-    x3Ub = constraints.x3Max if constraints.x3Max is not None else solver.Infinity()
-    x4Ub = constraints.x4Max if constraints.x4Max is not None else solver.Infinity()
-    x5Ub = constraints.x5Max if constraints.x5Max is not None else solver.Infinity()
-    x6Ub = constraints.x6Max if constraints.x6Max is not None else solver.Infinity()
-    x7Ub = constraints.x7Max if constraints.x7Max is not None else solver.Infinity()
+    x1Ub = (
+        constraints.x1Max if isinstance(constraints.x1Max, int) else solver.Infinity()
+    )
+    x2Ub = (
+        constraints.x2Max if isinstance(constraints.x2Max, int) else solver.Infinity()
+    )
+    x3Ub = (
+        constraints.x3Max if isinstance(constraints.x3Max, int) else solver.Infinity()
+    )
+    x4Ub = (
+        constraints.x4Max if isinstance(constraints.x4Max, int) else solver.Infinity()
+    )
+    x5Ub = (
+        constraints.x5Max if isinstance(constraints.x5Max, int) else solver.Infinity()
+    )
+    x6Ub = (
+        constraints.x6Max if isinstance(constraints.x6Max, int) else solver.Infinity()
+    )
+    x7Ub = (
+        constraints.x7Max if isinstance(constraints.x7Max, int) else solver.Infinity()
+    )
 
     # decision variables
     x1 = solver.IntVar(lb=0, ub=x1Ub, name="x1")
