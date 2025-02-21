@@ -23,7 +23,6 @@ class Constraints(BaseModel):
 router = APIRouter(
     prefix="/api/optimizations",
     tags=["optimizations"],
-    responses={404: {"description": "Not found"}},
 )
 
 
@@ -156,4 +155,4 @@ def optimization_staffing(constraints: Constraints):
         }
 
     else:
-        raise HTTPException(status_code=404, detail="No solution found")
+        raise HTTPException(status_code=400, detail="No solution found")
