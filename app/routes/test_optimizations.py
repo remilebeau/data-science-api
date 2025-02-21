@@ -5,25 +5,27 @@ from ..main import app
 client = TestClient(app)
 
 
-# @desc Test production simulation with triangular distribution
-# @route GET /api/optimizations/staffing
+# @DESC Test production simulation with triangular distribution
+# @ROUTE POST /api/optimizations/staffing
 def test_staffing_optimization():
-    params = {
-        "monday": 17,
-        "tuesday": 13,
-        "wednesday": 15,
-        "thursday": 19,
-        "friday": 14,
-        "saturday": 16,
-        "sunday": 11,
+    body = {
+        "monReq": 17,
+        "tueReq": 13,
+        "wedReq": 15,
+        "thuReq": 19,
+        "friReq": 14,
+        "satReq": 16,
+        "sunReq": 11,
+        "x1Max": "i",
+        "x2Max": "i",
+        "x3Max": "i",
+        "x4Max": "i",
+        "x5Max": "i",
+        "x6Max": "i",
+        "x7Max": "i",
     }
-    response = client.get(
-        "/api/optimizations/staffing",
-        params=params,
-    )
-    objFuncVal = response.json()["objFuncVal"]
-
-    # check status code
-    assert response.status_code == 200
+    res = client.post("/api/optimizations/staffing", json=body)
+    minStaff = res.json()["minStaff"]
+    assert res.status_code == 200
     # check for accuracy. answer should be between 22 and 24
-    assert 22 <= objFuncVal <= 24
+    assert 22 <= minStaff <= 24

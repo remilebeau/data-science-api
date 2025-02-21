@@ -5,10 +5,10 @@ from ..main import app
 client = TestClient(app)
 
 
-# @desc Test production simulation with triangular distribution
-# @route GET /api/simulations/production
+# @DESC Test production simulation with triangular distribution
+# @ROUTE POST /api/simulations/production
 def test_simulations_production_triangular():
-    params = {
+    body = {
         "unitCost": 80,
         "unitPrice": 100,
         "salvagePrice": 30,
@@ -19,33 +19,23 @@ def test_simulations_production_triangular():
         "demandMax": 16000,
         "demandSD": 0,
     }
-    response = client.get(
-        "/api/simulations/production",
-        params=params,
-    )
-    response_two = client.get(
-        "/api/simulations/production",
-        params=params,
-    )
-    # check status code
-    assert response.status_code == 200
-    # check that 1000 values were returned
-    profits = response.json()["simulatedProfits"]
-    profits_two = response_two.json()["simulatedProfits"]
-    mean = response.json()["mean"]
-    assert len(profits) == 1000
-    # check that the 1000 values are reproducible with the same inputs
+    res = client.post("/api/simulations/production", json=body)
+    res_two = client.post("/api/simulations/production", json=body)
+    assert res.status_code == 200
+    profits = res.json()["simulatedProfits"]
+    profits_two = res_two.json()["simulatedProfits"]
     assert profits == profits_two
-    # check that the 1000 values are not identical
+    assert len(profits) == 1000
     assert min(profits) < max(profits)
-    # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
+    # mean profit with these inputs should be between 47,000 and 49,000
+    mean = res.json()["mean"]
     assert 47000 <= mean <= 49000
 
 
-# @desc Test production simulation with truncated normal distribution
-# @route GET /api/simulations/production
+# @DESC Test production simulation with truncated normal distribution
+# @ROUTE POST /api/simulations/production
 def test_simulations_production_truncated_normal():
-    params = {
+    body = {
         "unitCost": 80,
         "unitPrice": 100,
         "salvagePrice": 30,
@@ -56,24 +46,14 @@ def test_simulations_production_truncated_normal():
         "demandMax": 16000,
         "demandSD": 3496,
     }
-    response = client.get(
-        "/api/simulations/production",
-        params=params,
-    )
-    response_two = client.get(
-        "/api/simulations/production",
-        params=params,
-    )
-    # check status code
-    assert response.status_code == 200
-    # check that 1000 values were returned
-    profits = response.json()["simulatedProfits"]
-    profits_two = response_two.json()["simulatedProfits"]
-    mean = response.json()["mean"]
-    assert len(profits) == 1000
-    # check that the 1000 values are reproducible with the same inputs
+    res = client.post("/api/simulations/production", json=body)
+    res_two = client.post("/api/simulations/production", json=body)
+    assert res.status_code == 200
+    profits = res.json()["simulatedProfits"]
+    profits_two = res_two.json()["simulatedProfits"]
     assert profits == profits_two
-    # check that the 1000 values are not identical
+    assert len(profits) == 1000
     assert min(profits) < max(profits)
-    # check for accuracy. the mean profit with these inputs should be between 47,000 and 49,000
+    # mean profit with these inputs should be between 47,000 and 49,000
+    mean = res.json()["mean"]
     assert 47000 <= mean <= 49000
