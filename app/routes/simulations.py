@@ -1,61 +1,33 @@
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 import numpy as np
 from ..utils.utils import generate_stats, is_triangular, is_truncated_normal
+
+
+class SimulationInputs(BaseModel):
+    productionQuantity: float
+    unitCost: float
+    unitPrice: float
+    salvagePrice: float
+    fixedCost: float
+    demandMin: float
+    demandMode: float
+    demandMax: float
+    demandSD: float
+
 
 router = APIRouter(
     prefix="/api/simulations",
     tags=["simulations"],
-    responses={404: {"description": "Not found"}},
 )
 
 
 # @desc Monte Carlo simulation for production planning
-# @route GET /api/simulations/production
+# @route POST /api/simulations/production
 # @access public
-@router.get("/production")
-def simulation_production(
-    productionQuantity: float,
-    unitCost: float,
-    unitPrice: float,
-    salvagePrice: float,
-    fixedCost: float,
-    demandMin: float,
-    demandMode: float,
-    demandMax: float,
-    demandSD: float,
-):
-    """
-    Monte Carlo simulation for production planning
+@router.post("/production")
+def simulation_production(inputs: SimulationInputs):
 
-    PARAMS:
-
-    productionQuantity: number of units to be produced\n
-    unitCost: variable costs per unit\n
-    unitPrice: sell price per unit\n
-    salvagePrice: salvage price of units produced above demand\n
-    fixedCost: fixed cost of production\n
-    demandMin: minimum forecasted demand\n
-    demandMode: average forecasted demand\n
-    demandMax: maximum forecasted demand\n
-    demandSD: standard deviation forecasted demand\n
-
-    RETURNS:
-
-    minimum: minimum profit\n
-    valueAtRisk: 5th percentile profit\n
-    q1: 25th percentile profit\n
-    mean: mean profit\n
-    meanLowerCI: mean profit lower 95% confidence interval\n
-    meanUpperCI: mean profit upper 95% confidence interval\n
-    median: 50th percentile profit\n
-    q3: 75th percentile profit\n
-    maximum: maximum profit\n
-    pLoseMoney: probability of losing money\n
-    pLoseMoneyLowerCI: probability of losing money 95% lower confidence interval\n
-    pLoseMoneyUpperCI: probability of losing money 95% upper confidence interval\n
-    simulatedProfits: 1000 simulated profits
-
-    """
     # set seed
     rng = np.random.default_rng(seed=42)
 
@@ -67,11 +39,19 @@ def simulation_production(
         return value
 
     # define demand distribution based on provided values
-    if is_triangular(demandMin, demandMode, demandMax, demandSD):
-        demand_distribution = rng.triangular(demandMin, demandMode, demandMax, 1000)
-    elif is_truncated_normal(demandMin, demandMode, demandMax, demandSD):
+    if is_triangular(
+        inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
+    ):
+        demand_distribution = rng.triangular(
+            inputs.demandMin, inputs.demandMode, inputs.demandMax, 1000
+        )
+    elif is_truncated_normal(
+        inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
+    ):
         demand_distribution = [
-            truncated_normal(demandMin, demandMode, demandMax, demandSD)
+            truncated_normal(
+                inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
+            )
             for _ in range(0, 1000)
         ]
     else:
@@ -85,12 +65,17 @@ def simulation_production(
         # profit = sales revenue + salvage revenue - production costs - fixed costs
         # pick a random demand value
         realized_demand: float = rng.choice(demand_distribution)
-        units_sold = min(productionQuantity, realized_demand)
-        units_salvaged = productionQuantity - units_sold
-        production_cost = productionQuantity * unitCost
-        revenue_from_sales = units_sold * unitPrice
-        revenue_from_salvage = units_salvaged * salvagePrice
-        profit = revenue_from_sales + revenue_from_salvage - production_cost - fixedCost
+        units_sold = min(inputs.productionQuantity, realized_demand)
+        units_salvaged = inputs.productionQuantity - units_sold
+        production_cost = inputs.productionQuantity * inputs.unitCost
+        revenue_from_sales = units_sold * inputs.unitPrice
+        revenue_from_salvage = units_salvaged * inputs.salvagePrice
+        profit = (
+            revenue_from_sales
+            + revenue_from_salvage
+            - production_cost
+            - inputs.fixedCost
+        )
         return profit
 
     # run 1000 simulations

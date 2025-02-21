@@ -31,25 +31,6 @@ router = APIRouter(
 # @access public
 @router.post("/staffing")
 def optimization_staffing(constraints: Constraints):
-    """
-    PARAMS:\n
-    monReq: number of Monday staff required\n
-    tueReq: number of Tuesday staff required\n
-    wedReq: number of Wednesday staff required\n
-    thuReq: number of Thursday staff required\n
-    friReq: number of Friday staff required\n
-    satReq: number of Saturday staff required\n
-    sunReq: number of Sunday staff required\n
-
-    RETURNS:\n
-    x1 = number of Monday to Friday staff\n
-    x2 = number of Tuesday to Saturday staff\n
-    x3 = number of Wednesday to Sunday staff\n
-    x4 = number of Monday to Saturday staff\n
-    x5 = number of Tuesday to Sunday staff\n
-    x6 = number of Wednesday to Saturday staff\n
-    x7 = number of Thursday to Sunday staff\n
-    """
 
     # create solver
     solver = pywraplp.Solver.CreateSolver("SCIP")
