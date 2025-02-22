@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from ortools.linear_solver import pywraplp
 from pydantic import BaseModel
+from typing import Union
 
 
 class Constraints(BaseModel):
@@ -11,13 +12,13 @@ class Constraints(BaseModel):
     friReq: int
     satReq: int
     sunReq: int
-    x1Max: int | str
-    x2Max: int | str
-    x3Max: int | str
-    x4Max: int | str
-    x5Max: int | str
-    x6Max: int | str
-    x7Max: int | str
+    x1Max: Union[int, str]
+    x2Max: Union[int, str]
+    x3Max: Union[int, str]
+    x4Max: Union[int, str]
+    x5Max: Union[int, str]
+    x6Max: Union[int, str]
+    x7Max: Union[int, str]
 
 
 router = APIRouter(
