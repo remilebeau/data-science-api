@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import numpy as np
-from ..utils.utils import generate_stats, is_triangular, is_truncated_normal
+from ..utils.utils import generate_stats, is_truncated_normal
 
 
 class SimulationInputs(BaseModel):
@@ -22,11 +22,20 @@ router = APIRouter(
 )
 
 
-# @desc Monte Carlo simulation for production planning
-# @route POST /api/simulations/production
-# @access public
+# @DESC Monte Carlo simulation for production planning
+# @ROUTE POST /api/simulations/production
+# @ACCESS public
 @router.post("/production")
 def simulation_production(inputs: SimulationInputs):
+
+    # validation
+    if not is_truncated_normal(
+        inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Please check that (min <= mean <= max) and (min < max) and (sd >= 0)",
+        )
 
     # set seed
     rng = np.random.default_rng(seed=42)
@@ -38,27 +47,12 @@ def simulation_production(inputs: SimulationInputs):
             value = truncated_normal(min, max, mean, sd)
         return value
 
-    # define demand distribution based on provided values
-    if is_triangular(
-        inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
-    ):
-        demand_distribution = rng.triangular(
-            inputs.demandMin, inputs.demandMode, inputs.demandMax, 1000
+    demand_distribution = [
+        truncated_normal(
+            inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
         )
-    elif is_truncated_normal(
-        inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
-    ):
-        demand_distribution = [
-            truncated_normal(
-                inputs.demandMin, inputs.demandMode, inputs.demandMax, inputs.demandSD
-            )
-            for _ in range(0, 1000)
-        ]
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail="Please check that (min <= mean <= max) and (min < max) and (sd >= 0)",
-        )
+        for _ in range(0, 1000)
+    ]
 
     # define simulation
     def simulation():
