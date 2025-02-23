@@ -15,7 +15,7 @@ def test_simulations_production_truncated_normal():
         "fixedCost": 100000,
         "productionQuantity": 7800,
         "demandMin": 5000,
-        "demandMode": 12000,
+        "demandMean": 12000,
         "demandMax": 16000,
         "demandSD": 3496,
     }
