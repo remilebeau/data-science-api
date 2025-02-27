@@ -28,6 +28,7 @@ router = APIRouter(
 @router.post("/production")
 def simulation_production(inputs: SimulationInputs):
 
+    # validate inputs
     if not is_truncated_normal(
         inputs.demandMin, inputs.demandMean, inputs.demandMax, inputs.demandSD
     ):
@@ -73,14 +74,30 @@ def simulation_production(inputs: SimulationInputs):
     # run 1000 simulations
     simulated_profits = [simulation() for _ in range(0, 1000)]
 
+    # calculate stats
+    mean = np.mean(simulated_profits)
+    mean_lower_ci = mean - 1.96 * np.std(simulated_profits) / np.sqrt(
+        len(simulated_profits)
+    )
+    mean_upper_ci = mean + 1.96 * np.std(simulated_profits) / np.sqrt(
+        len(simulated_profits)
+    )
+    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
+        simulated_profits
+    )
+    p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
+    )
+    p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
+        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
+    )
+
     return {
-        "minimum": np.min(simulated_profits),
-        "q1": np.percentile(simulated_profits, 25),
-        "mean": np.mean(simulated_profits),
-        "median": np.median(simulated_profits),
-        "q3": np.percentile(simulated_profits, 75),
-        "maximum": np.max(simulated_profits),
-        "pLoseMoney": sum(profit < 0 for profit in simulated_profits)
-        / len(simulated_profits),
+        "mean": mean,
+        "meanLowerCI": mean_lower_ci,
+        "meanUpperCI": mean_upper_ci,
+        "pLoseMoney": p_lose_money,
+        "pLoseMoneyLowerCI": p_lose_money_lower_ci,
+        "pLoseMoneyUpperCI": p_lose_money_upper_ci,
         "simulatedProfits": simulated_profits,
     }
