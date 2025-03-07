@@ -16,13 +16,13 @@ def test_staffing_optimization_no_max():
         "friReq": 14,
         "satReq": 16,
         "sunReq": 11,
-        "x1Max": "i",
-        "x2Max": "i",
-        "x3Max": "i",
-        "x4Max": "i",
-        "x5Max": "i",
-        "x6Max": "i",
-        "x7Max": "i",
+        "x1Max": -1,
+        "x2Max": -1,
+        "x3Max": -1,
+        "x4Max": -1,
+        "x5Max": -1,
+        "x6Max": -1,
+        "x7Max": -1,
     }
     res = client.post("/api/optimizations/staffing", json=body)
     minStaff = res.json()["minStaff"]
@@ -42,13 +42,13 @@ def test_staffing_optimization():
         "friReq": 14,
         "satReq": 16,
         "sunReq": 11,
-        "x1Max": "i",
-        "x2Max": "i",
-        "x3Max": "i",
+        "x1Max": -1,
+        "x2Max": -1,
+        "x3Max": -1,
         "x4Max": 0,
-        "x5Max": "i",
-        "x6Max": "i",
-        "x7Max": "i",
+        "x5Max": -1,
+        "x6Max": -1,
+        "x7Max": -1,
     }
     res = client.post("/api/optimizations/staffing", json=body)
     minStaff = res.json()["minStaff"]
