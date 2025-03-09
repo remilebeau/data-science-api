@@ -76,24 +76,21 @@ def simulation_production(inputs: SimulationInputs):
 
     # calculate stats
     mean = np.mean(simulated_profits)
-    mean_lower_ci = mean - 1.96 * np.std(simulated_profits) / np.sqrt(
-        len(simulated_profits)
-    )
-    mean_upper_ci = mean + 1.96 * np.std(simulated_profits) / np.sqrt(
-        len(simulated_profits)
-    )
-    p_lose_money = sum(profit < 0 for profit in simulated_profits) / len(
-        simulated_profits
-    )
+    sd = np.std(simulated_profits)
+    n = len(simulated_profits)
+    mean_lower_ci = mean - 1.96 * sd / np.sqrt(n)
+    mean_upper_ci = mean + 1.96 * sd / np.sqrt(n)
+    p_lose_money = sum(profit < 0 for profit in simulated_profits) / n
     p_lose_money_lower_ci = p_lose_money - 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
+        p_lose_money * (1 - p_lose_money) / n
     )
     p_lose_money_upper_ci = p_lose_money + 1.96 * np.sqrt(
-        p_lose_money * (1 - p_lose_money) / len(simulated_profits)
+        p_lose_money * (1 - p_lose_money) / n
     )
 
     return {
         "mean": mean,
+        "sd": sd,
         "meanLowerCI": mean_lower_ci,
         "meanUpperCI": mean_upper_ci,
         "pLoseMoney": p_lose_money,
