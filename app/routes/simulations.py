@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import numpy as np
-from ..utils.utils import is_truncated_normal
 
 
 class SimulationInputs(BaseModel):
@@ -29,12 +28,15 @@ router = APIRouter(
 def simulation_production(inputs: SimulationInputs):
 
     # validate inputs
-    if not is_truncated_normal(
-        inputs.demandMin, inputs.demandMean, inputs.demandMax, inputs.demandSD
-    ):
+    if not (inputs.demandMin < inputs.demandMean < inputs.demandMax):
         raise HTTPException(
             status_code=400,
-            detail="Please check that (min <= mean <= max) and (min < max) and (sd >= 0)",
+            detail="mean must be between min and max",
+        )
+    if not (inputs.demandSD > 0):
+        raise HTTPException(
+            status_code=400,
+            detail="standard deviation must be greater than 0",
         )
 
     # set seed
