@@ -42,12 +42,12 @@ def simulation_production(inputs: SimulationInputs):
     if not (inputs.worstLikelyDemand < inputs.expectedDemand < inputs.bestLikelyDemand):
         raise HTTPException(
             status_code=400,
-            detail="mean must be between min and max",
+            detail="Invalid demand values. Ensure that worstLikelyDemand < expectedDemand < bestLikelyDemand",
         )
-    if not (inputs.demandStandardDeviation > 0):
+    if inputs.demandStandardDeviation <= 0:
         raise HTTPException(
             status_code=400,
-            detail="standard deviation must be greater than 0",
+            detail="demandStandardDeviation must be greater than 0",
         )
 
     # set seed
