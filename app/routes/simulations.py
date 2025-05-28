@@ -79,22 +79,13 @@ def simulation_production(inputs: SimulationInputs):
     # calculate stats
     mean = np.mean(simulated_profits)
     sd = np.std(simulated_profits)
-    n = len(simulated_profits)
-    minimum = np.min(simulated_profits)
-    q1 = np.percentile(simulated_profits, 25)
-    median = np.median(simulated_profits)
-    q3 = np.percentile(simulated_profits, 75)
-    maximum = np.max(simulated_profits)
-    p_lose_money = sum(profit < 0 for profit in simulated_profits) / n
+    worstLikelyCase = np.percentile(simulated_profits, 5)
+    bestLikelyCase = np.percentile(simulated_profits, 95)
 
     return {
         "mean": mean,
         "sd": sd,
-        "minimum": minimum,
-        "q1": q1,
-        "median": median,
-        "q3": q3,
-        "maximum": maximum,
-        "pLoseMoney": p_lose_money,
+        "worstLikelyCase": worstLikelyCase,
+        "bestLikelyCase": bestLikelyCase,
         "simulatedProfits": simulated_profits,
     }
