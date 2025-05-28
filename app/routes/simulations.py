@@ -32,9 +32,9 @@ def simulation_production(inputs: SimulationInputs):
      unitPrice = Sell price per unit\n
      salvagePrice = Salvage price per unit\n
      fixedCost = Total fixed costs for the project\n
-     worstLikelyDemand = Worst likely demand\n
+     worstLikelyDemand = Worst likely demand (5th percentile)\n
      expectedDemand = Expected demand\n
-     bestLikelyDemand = Best likely demand\n
+     bestLikelyDemand = Best likely demand (95th percentile)\n
      demandStandardDeviation = Standard deviation of demand. Calculate with historical data, or estimate with a multiple of expected demand.
     '''
 
@@ -90,12 +90,14 @@ def simulation_production(inputs: SimulationInputs):
     # calculate stats
     expectedProfit = np.mean(simulated_profits)
     volatility = np.std(simulated_profits)
+    sharpeRatio = expectedProfit / volatility
     worstLikelyCase = np.percentile(simulated_profits, 5)
     bestLikelyCase = np.percentile(simulated_profits, 95)
 
     return {
         "expectedProfit": expectedProfit,
         "volatility": volatility,
+        "sharpeRatio":sharpeRatio,
         "worstLikelyCase": worstLikelyCase,
         "bestLikelyCase": bestLikelyCase,
         "simulatedProfits": simulated_profits,
