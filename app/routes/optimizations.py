@@ -22,25 +22,43 @@ router = APIRouter(
 # @DESC optimization model for minimizing staffing
 # @route POST /api/optimizations/staffing
 # @access public
-@router.post("/staffing")
+@router.post("/staffing", summary="Optimize staffing schedule", response_description="Optimal staffing configuration")
 def optimization_staffing(constraints: Constraints):
     """
-    X1 = number of Mon to Fri workers\n
-    X2 = number of Tue to Sat workers\n
-    X3 = number of Wed to Sun workers\n
-    X4 = number of Thu to Mon workers\n
-    X5 = number of Fri to Tue workers\n
-    X6 = number of Sat to Wed workers\n
-    X7 = number of Sun to Thu workers\n
-    Minimize X1 + X2 + X3 + X4 + X5 + X6 + X7\n
-    s.t.\n
-    Mon staff available >= Mon staff required\n
-    Tue staff available >= Tue staff required\n
-    Wed staff available >= Wed staff required\n
-    Thu staff available >= Thu staff required\n
-    Fri staff available >= Fri staff required\n
-    Sat staff available >= Sat staff required\n
-    Sun staff available >= Sun staff required\n
+    Solve a weekly staffing optimization problem using linear programming.
+
+    The goal is to minimize the total number of staff required while ensuring that
+    the required number of workers is available on each day of the week.
+
+    Workers are assigned in rotating 5-day shifts:
+    - x1: Mon–Fri
+    - x2: Tue–Sat
+    - x3: Wed–Sun
+    - x4: Thu–Mon
+    - x5: Fri–Tue
+    - x6: Sat–Wed
+    - x7: Sun–Thu
+
+    ### Request Body
+    - **monReq**: Required number of workers on Monday
+    - **tueReq**: Required number of workers on Tuesday
+    - **wedReq**: Required number of workers on Wednesday
+    - **thuReq**: Required number of workers on Thursday
+    - **friReq**: Required number of workers on Friday
+    - **satReq**: Required number of workers on Saturday
+    - **sunReq**: Required number of workers on Sunday
+
+    ### Response (on success):
+    - `minStaff`: Minimum total number of workers required
+    - `x1` to `x7`: Number of workers assigned to each 5-day rotation
+    - `monAva` to `sunAva`: Number of workers available per day
+    - `monReq` to `sunReq`: Input constraints
+    - `monSlack` to `sunSlack`: Slack (surplus) workers per day
+    - `totalSlack`: Total surplus across all days
+
+    ### Response Codes
+    - `200 OK`: Optimization successful
+    - `400 Bad Request`: No feasible solution found
     """
 
     # create solver

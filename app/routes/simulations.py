@@ -1,6 +1,5 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
-import numpy as np
 
 
 class SimulationInputs(BaseModel):
@@ -24,81 +23,41 @@ router = APIRouter(
 # @DESC Monte Carlo simulation for production planning
 # @ROUTE POST /api/simulations/production
 # @ACCESS public
-@router.post("/production")
+@router.post(
+    "/production",
+    summary="Run Monte Carlo production simulation",
+    response_description="Simulation results including expected profit and risk metrics",
+)
 def simulation_production(inputs: SimulationInputs):
-    '''
-    productionQuantity = Units you will produce. You decide this today for the entire year.\n
-     unitCost = Production costs per unit\n
-     unitPrice = Sell price per unit\n
-     salvagePrice = Salvage price per unit\n
-     fixedCost = Total fixed costs for the project\n
-     worstLikelyDemand = Worst likely demand (5th percentile)\n
-     expectedDemand = Expected demand\n
-     bestLikelyDemand = Best likely demand (95th percentile)\n
-     demandStandardDeviation = Standard deviation of demand. Calculate with historical data, or estimate with a multiple of expected demand.
-    '''
+    """
+    Perform a Monte Carlo simulation to evaluate the profitability of a production decision under uncertain demand.
 
-    # validate inputs
-    if not (inputs.worstLikelyDemand < inputs.expectedDemand < inputs.bestLikelyDemand):
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid demand values. Ensure that worstLikelyDemand < expectedDemand < bestLikelyDemand",
-        )
-    if inputs.demandStandardDeviation <= 0:
-        raise HTTPException(
-            status_code=400,
-            detail="demandStandardDeviation must be greater than 0",
-        )
+    This endpoint simulates 1,000 scenarios of uncertain demand based on a truncated normal distribution
+    defined by the worst likely, expected, and best likely demand values and the demand standard deviation.
+    It calculates expected profit, profit volatility, Sharpe ratio (profit-to-risk), and the 5th and 95th
+    percentile outcomes of the simulated profit distribution.
 
-    # set seed
-    rng = np.random.default_rng(seed=42)
+    ### Request Body:
+    - **productionQuantity**: (float) Units to be produced. Fixed before demand is realized.
+    - **unitCost**: (float) Cost to produce a single unit.
+    - **unitPrice**: (float) Sale price per unit sold.
+    - **salvagePrice**: (float) Salvage value per unsold unit.
+    - **fixedCost**: (float) Total fixed costs incurred regardless of production quantity.
+    - **worstLikelyDemand**: (float) 5th percentile demand estimate.
+    - **expectedDemand**: (float) Expected average demand.
+    - **bestLikelyDemand**: (float) 95th percentile demand estimate.
+    - **demandStandardDeviation**: (float) Standard deviation of demand.
 
-    # define truncated normal function
-    def truncated_normal(min: float, mean: float, max: float, sd: float) -> float:
-        value = rng.normal(mean, sd)
-        if value < min or value > max:
-            value = truncated_normal(min, max, mean, sd)
-        return value
+    ### Responses:
+    - **200 OK**: Returns calculated simulation statistics:
+        - `expectedProfit`: Mean profit across simulations.
+        - `volatility`: Standard deviation of simulated profits.
+        - `sharpeRatio`: Expected profit divided by volatility.
+        - `worstLikelyCase`: 5th percentile of simulated profits.
+        - `bestLikelyCase`: 95th percentile of simulated profits.
+        - `simulatedProfits`: List of individual simulated profit outcomes.
 
-    demand_distribution = [
-        truncated_normal(
-            inputs.worstLikelyDemand, inputs.expectedDemand, inputs.bestLikelyDemand, inputs.demandStandardDeviation
-        )
-        for _ in range(0, 1000)
-    ]
-
-    # define simulation
-    def simulation():
-        # profit = salesRevenue + salvageRevenue - productionCosts - fixedCosts
-        realized_demand: float = rng.choice(demand_distribution)
-        units_sold = min(inputs.productionQuantity, realized_demand)
-        units_salvaged = inputs.productionQuantity - units_sold
-        production_cost = inputs.productionQuantity * inputs.unitCost
-        revenue_from_sales = units_sold * inputs.unitPrice
-        revenue_from_salvage = units_salvaged * inputs.salvagePrice
-        profit = (
-            revenue_from_sales
-            + revenue_from_salvage
-            - production_cost
-            - inputs.fixedCost
-        )
-        return profit
-
-    # run 1000 simulations
-    simulated_profits = [simulation() for _ in range(0, 1000)]
-
-    # calculate stats
-    expectedProfit = np.mean(simulated_profits)
-    volatility = np.std(simulated_profits)
-    sharpeRatio = expectedProfit / volatility
-    worstLikelyCase = np.percentile(simulated_profits, 5)
-    bestLikelyCase = np.percentile(simulated_profits, 95)
-
-    return {
-        "expectedProfit": expectedProfit,
-        "volatility": volatility,
-        "sharpeRatio":sharpeRatio,
-        "worstLikelyCase": worstLikelyCase,
-        "bestLikelyCase": bestLikelyCase,
-        "simulatedProfits": simulated_profits,
-    }
+    - **400 Bad Request**: If input constraints are violated:
+        - `worstLikelyDemand` must be < `expectedDemand` < `bestLikelyDemand`.
+        - `demandStandardDeviation` must be > 0.
+    """
