@@ -9,10 +9,10 @@ class SimulationInputs(BaseModel):
     unitPrice: float
     salvagePrice: float
     fixedCost: float
-    demandMin: float
-    demandMean: float
-    demandMax: float
-    demandSD: float
+    worstLikelyDemand: float
+    expectedDemand: float
+    bestLikelyDemand: float
+    demandStandardDeviation: float
 
 
 router = APIRouter(
@@ -35,16 +35,16 @@ def simulation_production(inputs: SimulationInputs):
      worstLikelyDemand = Worst likely demand\n
      expectedDemand = Expected demand\n
      bestLikelyDemand = Best likely demand\n
-     demandSD = Standard deviation of demand. Calculate with historical data, or estimate with a multiple of expected demand.
+     demandStandardDeviation = Standard deviation of demand. Calculate with historical data, or estimate with a multiple of expected demand.
     '''
 
     # validate inputs
-    if not (inputs.demandMin < inputs.demandMean < inputs.demandMax):
+    if not (inputs.worstLikelyDemand < inputs.expectedDemand < inputs.bestLikelyDemand):
         raise HTTPException(
             status_code=400,
             detail="mean must be between min and max",
         )
-    if not (inputs.demandSD > 0):
+    if not (inputs.demandStandardDeviation > 0):
         raise HTTPException(
             status_code=400,
             detail="standard deviation must be greater than 0",
@@ -62,7 +62,7 @@ def simulation_production(inputs: SimulationInputs):
 
     demand_distribution = [
         truncated_normal(
-            inputs.demandMin, inputs.demandMean, inputs.demandMax, inputs.demandSD
+            inputs.worstLikelyDemand, inputs.expectedDemand, inputs.bestLikelyDemand, inputs.demandStandardDeviation
         )
         for _ in range(0, 1000)
     ]
