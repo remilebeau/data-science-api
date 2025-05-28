@@ -26,6 +26,17 @@ router = APIRouter(
 # @ACCESS public
 @router.post("/production")
 def simulation_production(inputs: SimulationInputs):
+    '''
+    productionQuantity = Units you will produce. You decide this today for the entire year.\n
+     unitCost = Production costs per unit\n
+     unitPrice = Sell price per unit\n
+     salvagePrice = Salvage price per unit\n
+     fixedCost = Total fixed costs for the project\n
+     demandMin = worst likely demand\n
+     demandMean = expected demand\n
+     demandMax = best likely demand\n
+     demandSD = Standard deviation of demand. Calculate with historical data, or estimate with a multiple of expected demand.
+    '''
 
     # validate inputs
     if not (inputs.demandMin < inputs.demandMean < inputs.demandMax):
