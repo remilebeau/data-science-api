@@ -20,15 +20,15 @@ def test_simulations_production_valid():
     res = client.post("/api/simulations/production", json=body)
     res_two = client.post("/api/simulations/production", json=body)
     assert res.status_code == 200
-    profits = res.json()["simulatedProfits"]
-    profits_two = res_two.json()["simulatedProfits"]
-    assert profits == profits_two
-    assert len(profits) == 1000
+    expectedProfitOne = res.json()["expectedProfit"]
+    worstLikelyCase = res.json()["worstLikelyCase"]
+    bestLikelyCase = res.json()["bestLikelyCase"]
+    expectedProfitTwo = res_two.json()["expectedProfit"]
+    assert expectedProfitOne == expectedProfitTwo
     # check we did not get the same profit 1000 times
-    assert min(profits) < max(profits)
-    # expected profit with these inputs should be between 47,000 and 49,000
-    expectedProfit = res.json()["expectedProfit"]
-    assert 47000 <= expectedProfit <= 49000
+    assert worstLikelyCase < bestLikelyCase
+    # check for accuracy
+    assert 47000 <= expectedProfitOne <= 49000
 
 
 def test_simulations_production_invalid():
