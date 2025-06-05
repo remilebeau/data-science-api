@@ -63,16 +63,26 @@ def simulation_production(inputs: SimulationInputs):
         - `demandStandardDeviation` must be > 0.
     """
     # validate
-    if inputs.worstLikelyDemand >= inputs.expectedDemand or inputs.expectedDemand >= inputs.bestLikelyDemand:
-        raise HTTPException(status_code=400, detail="worstLikelyDemand must be < expectedDemand < bestLikelyDemand")
+    if (
+        inputs.worstLikelyDemand >= inputs.expectedDemand
+        or inputs.expectedDemand >= inputs.bestLikelyDemand
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="worstLikelyDemand must be < expectedDemand < bestLikelyDemand",
+        )
     if inputs.demandStandardDeviation <= 0:
-        raise HTTPException(status_code=400, detail="demandStandardDeviation must be > 0")
+        raise HTTPException(
+            status_code=400, detail="demandStandardDeviation must be > 0"
+        )
 
     # set seed for reproducibility
     np.random.seed(42)
 
     def truncated_normal() -> float:
-        value = np.random.normal(inputs.expectedDemand, inputs.demandStandardDeviation, size=1)[0]
+        value = np.random.normal(
+            inputs.expectedDemand, inputs.demandStandardDeviation, size=1
+        )[0]
         if value < inputs.worstLikelyDemand or value > inputs.bestLikelyDemand:
             value = truncated_normal()
         return value
@@ -81,7 +91,9 @@ def simulation_production(inputs: SimulationInputs):
         # profit = salesRevenue + salvageRevenue - productionCost - fixedCost
         realizedDemand = truncated_normal()
         salesRevenue = inputs.unitPrice * min(inputs.productionQuantity, realizedDemand)
-        salvageRevenue = inputs.salvagePrice * max(inputs.productionQuantity - realizedDemand, 0)
+        salvageRevenue = inputs.salvagePrice * max(
+            inputs.productionQuantity - realizedDemand, 0
+        )
         productionCost = inputs.unitCost * inputs.productionQuantity
         fixedCost = inputs.fixedCost
         profit = salesRevenue + salvageRevenue - productionCost - fixedCost
