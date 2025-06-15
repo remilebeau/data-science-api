@@ -106,6 +106,15 @@ def simulation_production(inputs: SimulationInputs):
     worstLikelyCase = np.percentile(simulated_profits, 5)
     bestLikelyCase = np.percentile(simulated_profits, 95)
     return {
+        "productionQuantity": inputs.productionQuantity,
+        "unitCost": inputs.unitCost,
+        "unitPrice": inputs.unitPrice,
+        "salvagePrice": inputs.salvagePrice,
+        "fixedCost": inputs.fixedCost,
+        "worstLikelyDemand": inputs.worstLikelyDemand,
+        "expectedDemand": inputs.expectedDemand,
+        "bestLikelyDemand": inputs.bestLikelyDemand,
+        "demandStandardDeviation": inputs.demandStandardDeviation,
         "expectedProfit": expectedProfit,
         "volatility": volatility,
         "sharpeRatio": sharpeRatio,
