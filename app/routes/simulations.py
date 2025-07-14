@@ -102,22 +102,22 @@ def simulation_production(inputs: SimulationInputs):
     simulated_profits = [simulate_production() for _ in range(1000)]
     expectedProfit = np.mean(simulated_profits)
     volatility = np.std(simulated_profits)
-    sharpeRatio = expectedProfit / volatility
+    sharpeRatio = expectedProfit / volatility if volatility != 0 else 0
     worstLikelyCase = np.percentile(simulated_profits, 5)
     bestLikelyCase = np.percentile(simulated_profits, 95)
     return {
-        "productionQuantity": inputs.productionQuantity,
-        "unitCost": inputs.unitCost,
-        "unitPrice": inputs.unitPrice,
-        "salvagePrice": inputs.salvagePrice,
-        "fixedCost": inputs.fixedCost,
-        "worstLikelyDemand": inputs.worstLikelyDemand,
-        "expectedDemand": inputs.expectedDemand,
-        "bestLikelyDemand": inputs.bestLikelyDemand,
-        "demandStandardDeviation": inputs.demandStandardDeviation,
-        "expectedProfit": expectedProfit,
-        "volatility": volatility,
-        "sharpeRatio": sharpeRatio,
-        "worstLikelyCase": worstLikelyCase,
-        "bestLikelyCase": bestLikelyCase,
+        "productionQuantity": float(inputs.productionQuantity),
+        "unitCost": float(inputs.unitCost),
+        "unitPrice": float(inputs.unitPrice),
+        "salvagePrice": float(inputs.salvagePrice),
+        "fixedCost": float(inputs.fixedCost),
+        "worstLikelyDemand": float(inputs.worstLikelyDemand),
+        "expectedDemand": float(inputs.expectedDemand),
+        "bestLikelyDemand": float(inputs.bestLikelyDemand),
+        "demandStandardDeviation": float(inputs.demandStandardDeviation),
+        "expectedProfit": float(expectedProfit),
+        "volatility": float(volatility),
+        "sharpeRatio": float(sharpeRatio),
+        "worstLikelyCase": float(worstLikelyCase),
+        "bestLikelyCase": float(bestLikelyCase),
     }
