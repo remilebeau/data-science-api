@@ -15,109 +15,53 @@ class SimulationInputs(BaseModel):
     demandStandardDeviation: float
 
 
-router = APIRouter(
-    prefix="/api/simulations",
-    tags=["simulations"],
-)
+router = APIRouter(prefix="/api/simulations", tags=["simulations"])
 
 
-# @DESC Monte Carlo simulation for production planning
-# @ROUTE POST /api/simulations/production
-# @ACCESS public
-@router.post(
-    "/production",
-    summary="Run Monte Carlo production simulation",
-    response_description="Simulation results including expected profit and risk metrics",
-)
+@router.post("/production", summary="Run Monte Carlo production simulation")
 def simulation_production(inputs: SimulationInputs):
     """
-    Perform a Monte Carlo simulation to evaluate the profitability of a production decision under uncertain demand.
+    Run a Monte Carlo simulation to evaluate production profit under uncertain demand.
 
-    This endpoint simulates 1,000 scenarios of uncertain demand based on a truncated normal distribution
-    defined by the worst likely, expected, and best likely demand values and the demand standard deviation.
-    It calculates expected profit, profit volatility, Sharpe ratio (profit-to-risk), and the 5th and 95th
-    percentile outcomes of the simulated profit distribution.
-
-    ### Request Body:
-    - **productionQuantity**: (float) Units to be produced. Fixed before demand is realized.
-    - **unitCost**: (float) Cost to produce a single unit.
-    - **unitPrice**: (float) Sale price per unit sold.
-    - **salvagePrice**: (float) Salvage value per unsold unit.
-    - **fixedCost**: (float) Total fixed costs incurred regardless of production quantity.
-    - **worstLikelyDemand**: (float) 5th percentile demand estimate.
-    - **expectedDemand**: (float) Expected average demand.
-    - **bestLikelyDemand**: (float) 95th percentile demand estimate.
-    - **demandStandardDeviation**: (float) Standard deviation of demand.
-
-    ### Responses:
-    - **200 OK**: Returns calculated simulation statistics:
-        - `expectedProfit`: Mean profit across simulations.
-        - `volatility`: Standard deviation of simulated profits.
-        - `sharpeRatio`: Expected profit divided by volatility.
-        - `worstLikelyCase`: 5th percentile of simulated profits.
-        - `bestLikelyCase`: 95th percentile of simulated profits.
-        - `simulatedProfits`: List of individual simulated profit outcomes.
-
-    - **400 Bad Request**: If input constraints are violated:
-        - `worstLikelyDemand` must be < `expectedDemand` < `bestLikelyDemand`.
-        - `demandStandardDeviation` must be > 0.
+    Simulates 1,000 demand scenarios from a truncated normal distribution and returns
+    expected profit, volatility, Sharpe ratio, and 5th/95th percentile profit outcomes.
     """
-    # validate
-    if (
-        inputs.worstLikelyDemand >= inputs.expectedDemand
-        or inputs.expectedDemand >= inputs.bestLikelyDemand
-    ):
+    if not (inputs.worstLikelyDemand < inputs.expectedDemand < inputs.bestLikelyDemand):
         raise HTTPException(
-            status_code=400,
-            detail="worstLikelyDemand must be < expectedDemand < bestLikelyDemand",
+            400, "worstLikelyDemand must be < expectedDemand < bestLikelyDemand"
         )
     if inputs.demandStandardDeviation <= 0:
-        raise HTTPException(
-            status_code=400, detail="demandStandardDeviation must be > 0"
-        )
+        raise HTTPException(400, "demandStandardDeviation must be > 0")
 
-    # set seed for reproducibility
     np.random.seed(42)
 
-    def truncated_normal() -> float:
-        value = np.random.normal(
-            inputs.expectedDemand, inputs.demandStandardDeviation, size=1
-        )[0]
-        if value < inputs.worstLikelyDemand or value > inputs.bestLikelyDemand:
-            value = truncated_normal()
-        return value
+    def truncated_normal():
+        while True:
+            val = np.random.normal(
+                inputs.expectedDemand, inputs.demandStandardDeviation
+            )
+            if inputs.worstLikelyDemand <= val <= inputs.bestLikelyDemand:
+                return val
 
-    def simulate_production():
-        # profit = salesRevenue + salvageRevenue - productionCost - fixedCost
-        realizedDemand = truncated_normal()
-        salesRevenue = inputs.unitPrice * min(inputs.productionQuantity, realizedDemand)
-        salvageRevenue = inputs.salvagePrice * max(
-            inputs.productionQuantity - realizedDemand, 0
+    def simulate():
+        demand = truncated_normal()
+        sold = min(inputs.productionQuantity, demand)
+        unsold = max(inputs.productionQuantity - demand, 0)
+        return (
+            sold * inputs.unitPrice
+            + unsold * inputs.salvagePrice
+            - inputs.productionQuantity * inputs.unitCost
+            - inputs.fixedCost
         )
-        productionCost = inputs.unitCost * inputs.productionQuantity
-        fixedCost = inputs.fixedCost
-        profit = salesRevenue + salvageRevenue - productionCost - fixedCost
-        return profit
 
-    simulated_profits = [simulate_production() for _ in range(1000)]
-    expectedProfit = np.mean(simulated_profits)
-    volatility = np.std(simulated_profits)
-    sharpeRatio = expectedProfit / volatility if volatility != 0 else 0
-    worstLikelyCase = np.percentile(simulated_profits, 5)
-    bestLikelyCase = np.percentile(simulated_profits, 95)
+    profits = np.array([simulate() for _ in range(1000)])
+    volatility = profits.std()
+    expected_profit = profits.mean()
     return {
-        "productionQuantity": float(inputs.productionQuantity),
-        "unitCost": float(inputs.unitCost),
-        "unitPrice": float(inputs.unitPrice),
-        "salvagePrice": float(inputs.salvagePrice),
-        "fixedCost": float(inputs.fixedCost),
-        "worstLikelyDemand": float(inputs.worstLikelyDemand),
-        "expectedDemand": float(inputs.expectedDemand),
-        "bestLikelyDemand": float(inputs.bestLikelyDemand),
-        "demandStandardDeviation": float(inputs.demandStandardDeviation),
-        "expectedProfit": float(expectedProfit),
-        "volatility": float(volatility),
-        "sharpeRatio": float(sharpeRatio),
-        "worstLikelyCase": float(worstLikelyCase),
-        "bestLikelyCase": float(bestLikelyCase),
+        **inputs.model_dump(),
+        "expectedProfit": expected_profit,
+        "volatility": volatility,
+        "sharpeRatio": expected_profit / volatility if volatility else 0,
+        "worstLikelyCase": float(np.percentile(profits, 5)),
+        "bestLikelyCase": float(np.percentile(profits, 95)),
     }
