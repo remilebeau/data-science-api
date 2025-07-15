@@ -22,45 +22,28 @@ router = APIRouter(
 # @DESC optimization model for minimizing staffing
 # @route POST /api/optimizations/staffing
 # @access public
-@router.post("/staffing", summary="Optimize staffing schedule", response_description="Optimal staffing configuration")
+@router.post(
+    "/staffing",
+    summary="Optimize staffing schedule",
+    response_description="Optimal staffing configuration",
+)
 def optimization_staffing(constraints: Constraints):
     """
-    Solve a weekly staffing optimization problem using linear programming.
+    Optimize weekly staffing using linear programming.
 
-    The goal is to minimize the total number of staff required while ensuring that
-    the required number of workers is available on each day of the week.
-
-    Workers are assigned in rotating 5-day shifts:
-    - x1: Mon–Fri
-    - x2: Tue–Sat
-    - x3: Wed–Sun
-    - x4: Thu–Mon
-    - x5: Fri–Tue
-    - x6: Sat–Wed
-    - x7: Sun–Thu
+    Minimizes total staff needed while ensuring daily worker requirements are met.
+    Each worker is assigned to a 5-day shift (e.g., Mon-Fri, Tue-Sat, etc.).
 
     ### Request Body
-    - **monReq**: Required number of workers on Monday
-    - **tueReq**: Required number of workers on Tuesday
-    - **wedReq**: Required number of workers on Wednesday
-    - **thuReq**: Required number of workers on Thursday
-    - **friReq**: Required number of workers on Friday
-    - **satReq**: Required number of workers on Saturday
-    - **sunReq**: Required number of workers on Sunday
+    - monReq to sunReq: Required workers per day.
 
-    ### Response (on success):
-    - `minStaff`: Minimum total number of workers required
-    - `x1` to `x7`: Number of workers assigned to each 5-day rotation
-    - `monAva` to `sunAva`: Number of workers available per day
-    - `monReq` to `sunReq`: Input constraints
-    - `monSlack` to `sunSlack`: Slack (surplus) workers per day
-    - `totalSlack`: Total surplus across all days
-
-    ### Response Codes
-    - `200 OK`: Optimization successful
-    - `400 Bad Request`: No feasible solution found
+    ### Response (on success)
+    - minStaff: Total staff needed
+    - x1-x7: Workers assigned to each 5-day shift
+    - monAva-sunAva: Workers available each day
+    - monSlack-sunSlack: Surplus workers per day
+    - totalSlack: Total surplus
     """
-
     # create solver
     solver = pywraplp.Solver.CreateSolver("SCIP")
 
@@ -83,34 +66,28 @@ def optimization_staffing(constraints: Constraints):
     friAva = x1 + x2 + x3 + x4 + x5
     satAva = x2 + x3 + x4 + x5 + x6
     sunAva = x3 + x4 + x5 + x6 + x7
-    # RHS
-    monReq = constraints.monReq
-    tueReq = constraints.tueReq
-    wedReq = constraints.wedReq
-    thuReq = constraints.thuReq
-    friReq = constraints.friReq
-    satReq = constraints.satReq
-    sunReq = constraints.sunReq
     # add constraints
-    solver.Add(monAva >= monReq)
-    solver.Add(tueAva >= tueReq)
-    solver.Add(wedAva >= wedReq)
-    solver.Add(thuAva >= thuReq)
-    solver.Add(friAva >= friReq)
-    solver.Add(satAva >= satReq)
-    solver.Add(sunAva >= sunReq)
+    solver.Add(monAva >= constraints.monReq)
+    solver.Add(tueAva >= constraints.tueReq)
+    solver.Add(wedAva >= constraints.wedReq)
+    solver.Add(thuAva >= constraints.thuReq)
+    solver.Add(friAva >= constraints.friReq)
+    solver.Add(satAva >= constraints.satReq)
+    solver.Add(sunAva >= constraints.sunReq)
     # solve
     solver.Minimize(min_staff)
     status = solver.Solve()
     # calculate slack for each constraint
-    monSlack = monAva.solution_value() - monReq
-    tueSlack = tueAva.solution_value() - tueReq
-    wedSlack = wedAva.solution_value() - wedReq
-    thuSlack = thuAva.solution_value() - thuReq
-    friSlack = friAva.solution_value() - friReq
-    satSlack = satAva.solution_value() - satReq
-    sunSlack = sunAva.solution_value() - sunReq
-    totalSlack = monSlack + tueSlack + wedSlack + thuSlack + friSlack + satSlack + sunSlack
+    monSlack = monAva.solution_value() - constraints.monReq
+    tueSlack = tueAva.solution_value() - constraints.tueReq
+    wedSlack = wedAva.solution_value() - constraints.wedReq
+    thuSlack = thuAva.solution_value() - constraints.thuReq
+    friSlack = friAva.solution_value() - constraints.friReq
+    satSlack = satAva.solution_value() - constraints.satReq
+    sunSlack = sunAva.solution_value() - constraints.sunReq
+    totalSlack = (
+        monSlack + tueSlack + wedSlack + thuSlack + friSlack + satSlack + sunSlack
+    )
     # print results
     if status == pywraplp.Solver.OPTIMAL:
         return {
