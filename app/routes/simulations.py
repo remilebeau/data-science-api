@@ -17,46 +17,55 @@ class SimulationInputs(BaseModel):
 router = APIRouter(prefix="/api/simulations", tags=["simulations"])
 
 
-@router.post(
-    "/production", summary="Run Monte Carlo production simulation (triangular demand)"
-)
+@router.post("/production")
 def simulation_production_triangular(inputs: SimulationInputs):
-    """
-    Run a Monte Carlo simulation to evaluate production profit under uncertain demand
-    using a triangular distribution for demand.
-    """
     if not (inputs.worstLikelyDemand < inputs.expectedDemand < inputs.bestLikelyDemand):
-        raise HTTPException(
-            400, "worstLikelyDemand must be < expectedDemand < bestLikelyDemand"
-        )
+        raise HTTPException(400, "Invalid demand bounds")
+
     np.random.seed(42)
+    iterations = 5000 # Increased for smoother charts
 
-    def simulate():
-        # Generate demand from triangular distribution
-        demand = np.random.triangular(
-            left=inputs.worstLikelyDemand,
-            mode=inputs.expectedDemand,
-            right=inputs.bestLikelyDemand,
-        )
-        sold = min(inputs.productionQuantity, demand)
-        unsold = max(inputs.productionQuantity - demand, 0)
-        profit = (
-            sold * inputs.unitPrice
-            + unsold * inputs.salvagePrice
-            - inputs.productionQuantity * inputs.unitCost
-            - inputs.fixedCost
-        )
-        return profit
+    # VECTORIZED MATH: Generate all demand points at once
+    demands = np.random.triangular(
+        left=inputs.worstLikelyDemand,
+        mode=inputs.expectedDemand,
+        right=inputs.bestLikelyDemand,
+        size=iterations
+    )
 
-    # Run 1000 Monte Carlo simulations
-    profits = np.array([simulate() for _ in range(1000)])
-    expected_profit = profits.mean()
+    # Calculate results across the entire array
+    sold = np.minimum(inputs.productionQuantity, demands)
+    unsold = np.maximum(inputs.productionQuantity - demands, 0)
+    profits = (
+        sold * inputs.unitPrice
+        + unsold * inputs.salvagePrice
+        - inputs.productionQuantity * inputs.unitCost
+        - inputs.fixedCost
+    )
+
+    # Statistics for the summary table
+    expected_profit = float(np.mean(profits))
     value_at_risk = float(np.percentile(profits, 5))
     best_case = float(np.percentile(profits, 95))
+    prob_of_loss = float(np.mean(profits < 0)) # New FinOps metric!
+
+    # BINNED DATA FOR HISTOGRAM:
+    # Instead of sending 5,000 raw numbers (slow), we send the "counts" for histogram bars.
+    counts, bin_edges = np.histogram(profits, bins=30)
+    
+    # Format bins for Recharts: [{binCenter: 100, count: 5}, ...]
+    histogram_data = [
+        {"bin": float(bin_edges[i]), "count": int(counts[i])} 
+        for i in range(len(counts))
+    ]
 
     return {
-        **inputs.model_dump(),
-        "expectedProfit": expected_profit,
-        "valueAtRisk": value_at_risk,
-        "bestCase": best_case,
+        "summary": {
+            "expectedProfit": expected_profit,
+            "valueAtRisk": value_at_risk,
+            "bestCase": best_case,
+            "probOfLoss": prob_of_loss
+        },
+        "histogramData": histogram_data,
+        "rawPoints": profits.tolist() if iterations <= 1000 else [] # Optional for scatter plots
     }
