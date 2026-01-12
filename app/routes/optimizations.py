@@ -1,121 +1,91 @@
+import numpy as np
 from fastapi import APIRouter, HTTPException
-from ortools.linear_solver import pywraplp
 from pydantic import BaseModel
-
-
-class Constraints(BaseModel):
-    monReq: int
-    tueReq: int
-    wedReq: int
-    thuReq: int
-    friReq: int
-    satReq: int
-    sunReq: int
-
+from scipy.optimize import minimize
 
 router = APIRouter(
     prefix="/api/optimizations",
     tags=["optimizations"],
 )
 
+class StaffingInputs(BaseModel):
+    wage: float
+    fixed_overhead: float
+    demand_intensity: float  # Scalar for the workload
+    min_service_level: float  # e.g., 0.85 (85%)
 
-# @DESC optimization model for minimizing staffing
-# @route POST /api/optimizations/staffing
-# @access public
-@router.post(
-    "/staffing",
-    summary="Optimize staffing schedule",
-    response_description="Optimal staffing configuration",
-)
-def optimization_staffing(constraints: Constraints):
+# --- CORE MATHEMATICAL MODELS ---
+
+def calculate_service_level(headcount: float, intensity: float) -> float:
     """
-    Optimize weekly staffing using linear programming.
-
-    Minimizes total staff needed while ensuring daily worker requirements are met.
-    Each worker is assigned to a 5-day shift (e.g., Mon-Fri, Tue-Sat, etc.).
-
-    ### Request Body
-    - monReq to sunReq: Required workers per day.
-
-    ### Response (on success)
-    - minStaff: Total staff needed
-    - x1-x7: Workers assigned to each 5-day shift
-    - monAva-sunAva: Workers available each day
-    - monSlack-sunSlack: Surplus workers per day
-    - totalSlack: Total surplus
+    Models service level using a modified Erlang-C logic or exponential decay.
+    As headcount increases relative to intensity, service level approaches 1.0 (100%).
     """
-    # create solver
-    solver = pywraplp.Solver.CreateSolver("SCIP")
+    if headcount <= 0: 
+        return 0.0
+    # A standard saturation curve: 1 - e^(-k * (headcount/intensity))
+    return 1 - np.exp(-0.8 * (headcount / (intensity / 10)))
 
-    # decision variables
-    x1 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x1")
-    x2 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x2")
-    x3 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x3")
-    x4 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x4")
-    x5 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x5")
-    x6 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x6")
-    x7 = solver.IntVar(lb=0, ub=solver.Infinity(), name="x7")
-    # objective function
-    min_staff = x1 + x2 + x3 + x4 + x5 + x6 + x7
-    # constraints
-    # LHS
-    monAva = x1 + x4 + x5 + x6 + x7
-    tueAva = x1 + x2 + x5 + x6 + x7
-    wedAva = x1 + x2 + x3 + x6 + x7
-    thuAva = x1 + x2 + x3 + x4 + x7
-    friAva = x1 + x2 + x3 + x4 + x5
-    satAva = x2 + x3 + x4 + x5 + x6
-    sunAva = x3 + x4 + x5 + x6 + x7
-    # add constraints
-    solver.Add(monAva >= constraints.monReq)
-    solver.Add(tueAva >= constraints.tueReq)
-    solver.Add(wedAva >= constraints.wedReq)
-    solver.Add(thuAva >= constraints.thuReq)
-    solver.Add(friAva >= constraints.friReq)
-    solver.Add(satAva >= constraints.satReq)
-    solver.Add(sunAva >= constraints.sunReq)
-    # solve
-    solver.Minimize(min_staff)
-    status = solver.Solve()
-    # calculate slack for each constraint
-    monSlack = monAva.solution_value() - constraints.monReq
-    tueSlack = tueAva.solution_value() - constraints.tueReq
-    wedSlack = wedAva.solution_value() - constraints.wedReq
-    thuSlack = thuAva.solution_value() - constraints.thuReq
-    friSlack = friAva.solution_value() - constraints.friReq
-    satSlack = satAva.solution_value() - constraints.satReq
-    sunSlack = sunAva.solution_value() - constraints.sunReq
-    totalSlack = (
-        monSlack + tueSlack + wedSlack + thuSlack + friSlack + satSlack + sunSlack
-    )
-    # print results
-    if status == pywraplp.Solver.OPTIMAL:
-        return {
-            "minStaff": solver.Objective().Value(),
-            "x1": x1.solution_value(),
-            "x2": x2.solution_value(),
-            "x3": x3.solution_value(),
-            "x4": x4.solution_value(),
-            "x5": x5.solution_value(),
-            "x6": x6.solution_value(),
-            "x7": x7.solution_value(),
-            "monAva": monAva.solution_value(),
-            "tueAva": tueAva.solution_value(),
-            "wedAva": wedAva.solution_value(),
-            "thuAva": thuAva.solution_value(),
-            "friAva": friAva.solution_value(),
-            "satAva": satAva.solution_value(),
-            "sunAva": sunAva.solution_value(),
-            **constraints.model_dump(),
-            "monSlack": monSlack,
-            "tueSlack": tueSlack,
-            "wedSlack": wedSlack,
-            "thuSlack": thuSlack,
-            "friSlack": friSlack,
-            "satSlack": satSlack,
-            "sunSlack": sunSlack,
-            "totalSlack": totalSlack,
-        }
+def cost_objective(headcount: float, wage: float, fixed: float) -> float:
+    """Total labor cost function."""
+    return (headcount * wage) + fixed
 
-    else:
-        raise HTTPException(status_code=400, detail="No solution found")
+# --- ENDPOINTS ---
+
+@router.post("/staffing")
+def optimize_staffing(inputs: StaffingInputs):
+    """
+    Finds the MINIMUM headcount (and cost) required to hit a specific Service Level target.
+    """
+    # Constraint: service_level >= min_service_level
+    # Rearranged for scipy (must be >= 0): calculate_service_level - min_service_level >= 0
+    cons = ({
+        'type': 'ineq', 
+        'fun': lambda x: calculate_service_level(x[0], inputs.demand_intensity) - inputs.min_service_level
+    })
+    
+    # Minimize headcount
+    res = minimize(lambda x: x[0], x0=[10], constraints=cons, bounds=[(0, None)])
+
+    if not res.success:
+        raise HTTPException(status_code=400, detail="Optimization failed to converge")
+
+    optimal_headcount = float(res.x[0])
+    total_cost = cost_objective(optimal_headcount, inputs.wage, inputs.fixed_overhead)
+
+    return {
+        "optimalHeadcount": round(optimal_headcount, 2),
+        "totalCost": round(total_cost, 2),
+        "achievedServiceLevel": round(calculate_service_level(optimal_headcount, inputs.demand_intensity), 4)
+    }
+
+@router.post("/frontier")
+def get_efficient_frontier(inputs: StaffingInputs):
+    """
+    Generates a range of optimal points showing the trade-off between Cost and Service Level.
+    This provides the data for the shadcn/ui Line Chart.
+    """
+    frontier = []
+    # Generate targets from 70% to 99% service levels
+    service_targets = np.linspace(0.70, 0.99, 15)
+
+    for target in service_targets:
+        cons = ({
+            'type': 'ineq', 
+            'fun': lambda x: calculate_service_level(x[0], inputs.demand_intensity) - target
+        })
+        
+        res = minimize(lambda x: x[0], x0=[10], constraints=cons, bounds=[(0, None)])
+        
+        if res.success:
+            headcount = float(res.x[0])
+            cost = cost_objective(headcount, inputs.wage, inputs.fixed_overhead)
+            
+            frontier.append({
+                "serviceLevel": round(target * 100, 1),
+                "minCost": round(cost, 2),
+                # "Inefficiency" mock data to show gap on chart
+                "currentSpend": round(cost * 1.15, 2) 
+            })
+
+    return frontier
