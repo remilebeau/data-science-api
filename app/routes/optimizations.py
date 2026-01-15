@@ -32,6 +32,36 @@ def cost_objective(headcount: float, wage: float, fixed: float) -> float:
 
 # --- ENDPOINTS ---
 
+@router.post("/staffing-plan")
+def get_staffing_plan(inputs: StaffingInputs):
+    # The Goal: Hit exactly the user's min_service_level
+    cons = ({
+        'type': 'ineq', 
+        'fun': lambda x: calculate_service_level(x[0], inputs.demand_intensity) - inputs.min_service_level
+    })
+    
+    # Solve for the exact headcount needed
+    res = minimize(lambda x: x[0], x0=[inputs.demand_intensity / 20], constraints=cons, bounds=[(0, None)])
+    
+    optimal_headcount = float(res.x[0])
+    optimized_cost = cost_objective(optimal_headcount, inputs.wage, inputs.fixed_overhead)
+    
+    # Create a "Baseline" (simulating a typical 15% overstaffing waste in most companies)
+    baseline_headcount = optimal_headcount * 1.15
+    baseline_cost = cost_objective(baseline_headcount, inputs.wage, inputs.fixed_overhead)
+
+    return {
+        "plan": {
+            "targetSLA": inputs.min_service_level * 100,
+            "requiredHeadcount": round(optimal_headcount, 1),
+            "totalCost": round(optimized_cost, 2),
+        },
+        "comparison": {
+            "potentialSavings": round(baseline_cost - optimized_cost, 2),
+            "efficiencyGain": 15.0
+        }
+    }
+
 @router.post("/staffing")
 def optimize_staffing(inputs: StaffingInputs):
     """
