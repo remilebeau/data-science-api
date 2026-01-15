@@ -13,6 +13,7 @@ class StaffingInputs(BaseModel):
     fixed_overhead: float
     demand_intensity: float  # Scalar for the workload
     min_service_level: float  # e.g., 0.85 (85%)
+    current_headcount: float
 
 # --- CORE MATHEMATICAL MODELS ---
 
@@ -34,33 +35,50 @@ def cost_objective(headcount: float, wage: float, fixed: float) -> float:
 
 @router.post("/staffing-plan")
 def get_staffing_plan(inputs: StaffingInputs):
-    # The Goal: Hit exactly the user's min_service_level
+    # 1. Mathematical Optimization (The "Plan")
     cons = ({
         'type': 'ineq', 
         'fun': lambda x: calculate_service_level(x[0], inputs.demand_intensity) - inputs.min_service_level
     })
     
-    # Solve for the exact headcount needed
+    # Solve for optimal headcount
     res = minimize(lambda x: x[0], x0=[inputs.demand_intensity / 20], constraints=cons, bounds=[(0, None)])
     
-    optimal_headcount = float(res.x[0])
-    optimized_cost = cost_objective(optimal_headcount, inputs.wage, inputs.fixed_overhead)
+    if not res.success:
+        raise HTTPException(status_code=400, detail="Optimization failed")
+
+    optimal_hc = float(res.x[0])
+    optimized_cost = cost_objective(optimal_hc, inputs.wage, inputs.fixed_overhead)
     
-    # Create a "Baseline" (simulating a typical 15% overstaffing waste in most companies)
-    baseline_headcount = optimal_headcount * 1.15
-    baseline_cost = cost_objective(baseline_headcount, inputs.wage, inputs.fixed_overhead)
+    # 2. Current State (The "Actual")
+    current_cost = cost_objective(inputs.current_headcount, inputs.wage, inputs.fixed_overhead)
+    
+    # 3. Variance Analysis Logic
+    # If Current > Optimal = Overstaffed (Positive Savings Potential)
+    # If Current < Optimal = Understaffed (Negative Savings / Risk)
+    cost_variance = current_cost - optimized_cost
+    
+    # Status should be based on the headcount delta
+    status_msg = "Overstaffed" if inputs.current_headcount > optimal_hc else "Understaffed"
+    
+    # Calculate Efficiency Gain (only if overstaffed, otherwise it's a 'service gap')
+    efficiency_gain = (cost_variance / current_cost * 100) if current_cost > 0 else 0
 
     return {
         "plan": {
-            "targetSLA": inputs.min_service_level * 100,
-            "requiredHeadcount": round(optimal_headcount, 1),
+            "targetSLA": round(inputs.min_service_level * 100, 1),
+            "requiredHeadcount": round(optimal_hc, 1),
             "totalCost": round(optimized_cost, 2),
+            "headcountDelta": round(optimal_hc - inputs.current_headcount, 1) # Positive means hire, Negative means cut
         },
         "comparison": {
-            "potentialSavings": round(baseline_cost - optimized_cost, 2),
-            "efficiencyGain": 15.0
+            "actualCost": round(current_cost, 2),
+            "potentialSavings": round(cost_variance, 2),
+            "efficiencyGain": round(efficiency_gain, 1),
+            "status": status_msg
         }
     }
+
 
 @router.post("/staffing")
 def optimize_staffing(inputs: StaffingInputs):
@@ -95,7 +113,6 @@ def get_efficient_frontier(inputs: StaffingInputs):
     Generates a range of optimal points showing the trade-off between Cost and Service Level.
     This provides the data for the shadcn/ui Line Chart.
     """
-    frontier = []
     # Generate targets from 70% to 99% service levels
     service_targets = np.linspace(0.70, 0.99, 15)
 
@@ -111,11 +128,12 @@ def get_efficient_frontier(inputs: StaffingInputs):
             headcount = float(res.x[0])
             cost = cost_objective(headcount, inputs.wage, inputs.fixed_overhead)
             
-            frontier.append({
-                "serviceLevel": round(target * 100, 1),
+            return {
+                 "serviceLevel": round(target * 100, 1),
                 "minCost": round(cost, 2),
                 # "Inefficiency" mock data to show gap on chart
                 "currentSpend": round(cost * 1.15, 2) 
-            })
+            }
+        
 
-    return frontier
+    raise HTTPException(status_code=400, detail="Optimization failed to converge")
