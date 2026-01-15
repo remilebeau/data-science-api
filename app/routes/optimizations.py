@@ -59,7 +59,7 @@ def get_staffing_plan(inputs: StaffingInputs):
     cost_variance = current_cost - optimized_cost
     
     # Status should be based on the headcount delta
-    status_msg = "Overstaffed" if inputs.current_headcount > optimal_hc else "Understaffed"
+    is_overstaffed = inputs.current_headcount > optimal_hc
     
     # Calculate Efficiency Gain (only if overstaffed, otherwise it's a 'service gap')
     efficiency_gain = (cost_variance / current_cost * 100) if current_cost > 0 else 0
@@ -75,7 +75,7 @@ def get_staffing_plan(inputs: StaffingInputs):
             "actualCost": round(current_cost, 2),
             "potentialSavings": round(cost_variance, 2),
             "efficiencyGain": round(efficiency_gain, 1),
-            "status": status_msg
+            "isOverStaffed": is_overstaffed
         }
     }
 

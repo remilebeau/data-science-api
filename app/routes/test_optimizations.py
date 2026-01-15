@@ -21,16 +21,16 @@ def test_staffing_logic_diagnostics():
     
     optimal = data["plan"]["requiredHeadcount"]
     actual = payload["current_headcount"]
-    status = data["comparison"]["status"]
+    status = data["comparison"]["isOverStaffed"]
     
     print(f"\nDiagnostic: Optimal HC={optimal}, Actual HC={actual}, Status={status}")
 
     # Logic: If we have 30 and the math says we only need ~24, we are Overstaffed.
     if actual > optimal:
-        assert status == "Overstaffed"
+        assert status
         assert data["comparison"]["potentialSavings"] > 0
     else:
-        assert status == "Understaffed"
+        assert not status
         assert data["comparison"]["potentialSavings"] <= 0
 
 def test_understaffed_scenario():
@@ -47,5 +47,5 @@ def test_understaffed_scenario():
     data = response.json()
     
     # At 800 demand/95% SLA, 5 people is definitely not enough.
-    assert data["comparison"]["status"] == "Understaffed"
+    assert not data["comparison"]["isOverStaffed"]
     assert data["plan"]["headcountDelta"] > 0 # Delta says 'You need more'
