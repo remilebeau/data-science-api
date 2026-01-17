@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 
-from .routes import optimizations, simulations
+from .routes import optimizations, simulations, focus
 
 app = FastAPI()
 
@@ -21,6 +21,7 @@ app.add_middleware(
 # routes
 app.include_router(simulations.router)
 app.include_router(optimizations.router)
+app.include_router(focus.router)
 
 # root page
 
