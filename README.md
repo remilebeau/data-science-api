@@ -1,38 +1,58 @@
-# 📊 Data Science API – Monte Carlo Simulation & Workforce Optimization
+# Business Strategy API Suite
 
-A production-ready API built with **FastAPI** for solving real-world business problems using **simulation modeling** and **linear optimization**. This project demonstrates applied data science techniques deployed as scalable APIs, with a focus on decision-making under uncertainty and operational efficiency.
+This API provides data-driven insights for staffing and production planning, functioning as a high-level calculator for business strategy.
+Staffing Planner
 
-## 🔍 Project Overview
+Calculates the optimal number of staff to hire based on workload and service goals.
+Input Parameters
 
-This repo includes two endpoints:
+    Pay rate: Hourly or monthly compensation.
 
-1. **Monte Carlo Production Simulation**  
-   Simulates 1,000 demand scenarios using a **truncated normal distribution** to analyze expected profit, volatility, Sharpe ratio, and risk percentiles. Useful for production planning under demand uncertainty.
+    Fixed costs: Overheads associated with employment.
 
-2. **Workforce Optimization**  
-   Uses **linear programming** (via Google OR-Tools) to assign staff to rotating shifts across a 7-day schedule, minimizing total headcount while meeting daily coverage requirements.
+    Workload level: Volume of tasks or incoming requests.
 
-Both endpoints are **deployed with FastAPI** and include **parameter validation**, **Pydantic models**, and **business-focused outputs**.
+    Service quality: Desired performance threshold (e.g., handling 85% of requests on time).
 
----
+    Current team size: Total headcount currently active.
 
-## 🛠️ Tech Stack
+Output Data
 
-- **Python 3.11**
-- **FastAPI** – lightweight, fast web framework
-- **OR-Tools** – Google’s optimization toolkit
-- **NumPy** – numerical computing
-- **Pydantic** – data validation and serialization
-- **Uvicorn** – ASGI server for local development
+    Recommended team size: The ideal headcount for your goals.
 
----
+    Cost savings: Potential monthly savings if currently over-staffed.
 
-## 🚀 Live Demos
+    Status alerts: Warnings regarding under-staffing or inefficiencies.
 
-- 🔗 **Monte Carlo Simulation**  
-  [https://remilebeau-ds.vercel.app/simulation](https://remilebeau-ds.vercel.app/simulation)
+    Example: "You’re currently over-staffed by 1 person and could save $2,000/month."
 
-- 🔗 **Workforce Optimization**  
-  [https://remilebeau-ds.vercel.app/optimization](https://remilebeau-ds.vercel.app/optimization)
+Production Simulator
 
----
+Endpoint: POST /api/simulations/production
+
+Simulates profit outcomes for manufacturing a product when customer demand is uncertain.
+Input Parameters
+
+    Production volume: Total units planned for manufacture.
+
+    Financials: Cost per unit and selling price per unit.
+
+    Demand forecast: Best-case, worst-case, and expected customer demand.
+
+Output Data
+
+    Expected profit: The most likely financial outcome.
+
+    Risk assessment: Worst-case profit (calculated at a 5% risk level).
+
+    Probability distribution: Data for a chart showing various profit outcomes.
+
+    Example: "There’s a 98% chance you’ll make a profit, but only a 5% chance of making more than $14,800."
+
+How to Use
+
+    Request: Send your business data to the specific endpoint URL.
+
+    Analysis: Receive clear, data-driven results and visual distributions.
+
+    Action: Use the insights to make informed staffing and production decisions.
