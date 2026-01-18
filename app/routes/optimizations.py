@@ -78,7 +78,7 @@ def optimize_staffing(inputs: StaffingInputs) -> dict:
     is_overstaffed = inputs.current_headcount > optimal_hc
 
     # Calculate Efficiency Gain (only if overstaffed, otherwise it's a 'service gap')
-    efficiency_gain = (cost_variance / current_cost * 100) if current_cost > 0 else 0
+    efficiency_gain = (cost_variance / current_cost * 100) if is_overstaffed else 0
 
     return {
         "plan": {
